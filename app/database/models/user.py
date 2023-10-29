@@ -34,5 +34,6 @@ class User(Base):
     password_reset_at = Column(TIMESTAMP)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    is_deleted = Column(Boolean, default=False)
     deleted_at = Column(TIMESTAMP)
     deactivated_at = Column(TIMESTAMP)
