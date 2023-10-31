@@ -1,5 +1,5 @@
 from sqlalchemy import TIMESTAMP, Boolean, Column, String, Text, func
-from ..base import Base
+from base import Base
 import uuid
 
 

@@ -1,7 +1,7 @@
 from sqlalchemy import TIMESTAMP, Boolean, Column, Enum, Integer, String, Text, func
 
-from ..enums import EnumSuspensionStatus
-from ..base import Base
+from enums import EnumSuspensionStatus
+from base import Base
 import uuid
 
 
@@ -17,7 +17,7 @@ class User(Base):
     is_email_verified = Column(Boolean)
     is_verified = Column(Boolean)
     country = Column(Text)
-    trigger = Column(Enum(EnumSuspensionStatus))
+    trigger = Column(type_=Enum(EnumSuspensionStatus))
     is_deactivated = Column(Boolean, nullable=False, default=False)
     incorrect_password_attempt_count = Column(Integer)
     otp = Column(Text)

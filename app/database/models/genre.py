@@ -7,7 +7,7 @@ from sqlalchemy import (
     func,
 )
 
-from ..base import Base
+from base import Base
 import uuid
 
 

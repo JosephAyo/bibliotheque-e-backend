@@ -3,5 +3,7 @@
         "biblotheque",
         "sessionmaker",
         "sqlalchemy"
-    ]
+    ],
+    "mypy.configFile": "",
+    "mypy.debugLogging": false
 }

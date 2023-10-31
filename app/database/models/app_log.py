@@ -1,5 +1,5 @@
 from sqlalchemy import JSON, TIMESTAMP, Boolean, Column, ForeignKey, Text, func
-from ..base import Base
+from base import Base
 import uuid
 
 
