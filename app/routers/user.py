@@ -1,4 +1,3 @@
-from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -15,8 +14,8 @@ from ..database.base import get_db
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.post("/sign-up", response_model=user_schemas.ShowUser)
-def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
+@router.post("/sign-up", response_model=user_schemas.UserResponse)
+def create_user(user: user_schemas.UserSignUp, db: Session = Depends(get_db)):
     db_user = user_repository.get_one_by_email(user.email, db, True)
     if db_user:
         raise HTTPException(
@@ -27,12 +26,14 @@ def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
         user,
         db,
     )
+    verification_code = authentication_repository.generate_verification_code()
     user_repository.save_auth_code(
         created_user.id,
         "verification_code",
-        authentication_repository.generate_verification_code(),
+        verification_code,
         db,
     )
+    # send verification code to email
     return created_user
 
 
@@ -78,10 +79,34 @@ def resend_verification_email(
     user: user_schemas.UserResendVerificationEmail, db: Session = Depends(get_db)
 ):
     existing_user = user_repository.get_one_by_email(user.email, db)
+    verification_code = authentication_repository.generate_verification_code()
     user_repository.save_auth_code(
         existing_user.id,
         "verification_code",
-        authentication_repository.generate_verification_code(),
+        verification_code,
         db,
     )
+    # send verification code to email
     return {"message": "success", "detail": "verification email sent"}
+
+
+@router.post(
+    "/login",
+    response_model=user_schemas.UserLoginResponse,
+)
+def login(
+    req_body: user_schemas.UserLoginCredentials,
+    db: Session = Depends(get_db),
+):
+    user = user_repository.get_one_by_email(req_body.email, db)
+    if not verify_hash(
+        req_body.password,
+        user.password,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"incorrect credentials"
+        )
+    access_token = authentication_repository.create_access_token(
+        data={"email": user.email}
+    )
+    return {"access_token": access_token, "user": user}

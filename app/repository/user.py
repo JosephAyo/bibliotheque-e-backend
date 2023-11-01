@@ -37,7 +37,7 @@ def get_one_by_email(
     return user
 
 
-def create(req_body: user_schemas.UserCreate, db: Session = Depends(get_db)):
+def create(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)):
     new_user = user_models.User(
         first_name=req_body.first_name,
         last_name=req_body.last_name,
