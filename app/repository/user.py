@@ -79,7 +79,7 @@ def save_auth_code(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"user {id} not available"
         )
-    setattr(user, code_col_name, code)
+    setattr(user, code_col_name, create_hash(code))
     setattr(user, code_col_name + "_last_generated_at", func.now())
     db.commit()
 

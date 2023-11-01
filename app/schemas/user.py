@@ -34,6 +34,13 @@ class UserUpdate(BaseModel):
     email: str
 
 
+class UserVerifyEmail(BaseModel):
+    email: str
+    verification_code: str
+
+class UserResendVerificationEmail(BaseModel):
+    email: str
+
 class Login(BaseModel):
     email: str
     password: str
