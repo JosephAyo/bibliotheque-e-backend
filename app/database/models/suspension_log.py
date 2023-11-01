@@ -1,7 +1,7 @@
 from sqlalchemy import TIMESTAMP, Boolean, Column, Enum, ForeignKey, Text, func
 
-from enums import EnumSuspensionLogAction, EnumSuspensionStatus
-from base import Base
+from ..enums import EnumSuspensionLogAction, EnumSuspensionStatus
+from ..base import Base
 import uuid
 
 

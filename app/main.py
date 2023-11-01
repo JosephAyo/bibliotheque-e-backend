@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routers import library_router, user_router
+from .routers import library, user
 from .database.base import engine
 from .database.models import user as user_model
 from .database.models import role as role_model
@@ -31,5 +31,5 @@ faq_model.Base.metadata.create_all(engine)
 app_log_model.Base.metadata.create_all(engine)
 
 
-app.include_router(library_router.router)
-app.include_router(user_router.router)
+app.include_router(library.router)
+app.include_router(user.router)

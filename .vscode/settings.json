@@ -1,6 +1,9 @@
 {
     "cSpell.words": [
+        "autoflush",
+        "bibliotheque",
         "biblotheque",
+        "fastapi",
         "sessionmaker",
         "sqlalchemy"
     ],
