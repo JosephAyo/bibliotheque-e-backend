@@ -3,6 +3,8 @@ from typing import Annotated, Any, Union
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+import random
+import string
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -45,3 +47,12 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     # if user is None:
     #     raise credentials_exception
     # return user
+
+
+def generate_verification_code(length=6):
+    # Generate a random verification code of the specified length
+    characters = (
+        string.digits
+    )  # You can customize this to include letters or other characters
+    code = "".join(random.choice(characters) for _ in range(length))
+    return code

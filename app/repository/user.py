@@ -1,4 +1,6 @@
+import datetime
 from fastapi import Depends, HTTPException, status
+from sqlalchemy import func
 
 from ..database.base import get_db
 from ..schemas import user as user_schemas
@@ -66,4 +68,35 @@ def destroy(id, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND, detail=f"user {id} not available"
         )
     user.delete(synchronize_session=False)
+    db.commit()
+
+
+def save_auth_code(
+    id: str, code_col_name: str, code: str, db: Session = Depends(get_db)
+):
+    user = db.query(user_models.User).get(id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"user {id} not available"
+        )
+    setattr(user, code_col_name, code)
+    setattr(user, code_col_name + "_last_generated_at", func.now())
+    db.commit()
+
+
+def invalidate_auth_code(id: str, code_col_name: str, db: Session = Depends(get_db)):
+    user = db.query(user_models.User).get(id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"user {id} not available"
+        )
+    setattr(user, code_col_name, None)
+    setattr(
+        user,
+        code_col_name + "_last_generated_at",
+        (
+            getattr(user, code_col_name + "_last_generated_at", datetime.datetime.now())
+            - datetime.timedelta(days=40)
+        ),
+    )
     db.commit()
