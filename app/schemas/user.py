@@ -1,11 +1,11 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class User(BaseModel):
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
     password: str
     is_email_verified: bool
     is_verified: bool
@@ -15,7 +15,7 @@ class User(BaseModel):
 class ShowUser(BaseModel):
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
     is_email_verified: bool
     is_verified: bool
     is_deactivated: bool
@@ -24,25 +24,25 @@ class ShowUser(BaseModel):
 class UserCreate(BaseModel):
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
     password: str
 
 
 class UserUpdate(BaseModel):
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
 
 
 class UserVerifyEmail(BaseModel):
-    email: str
+    email: EmailStr
     verification_code: str
 
 class UserResendVerificationEmail(BaseModel):
-    email: str
+    email: EmailStr
 
 class Login(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
