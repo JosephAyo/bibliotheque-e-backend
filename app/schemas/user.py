@@ -2,7 +2,12 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 
-class User(BaseModel):
+class NoExtraBaseModel(BaseModel):
+    class Config:
+        extra = "forbid"
+
+
+class User(NoExtraBaseModel):
     first_name: str
     last_name: str
     email: EmailStr
@@ -12,7 +17,7 @@ class User(BaseModel):
     is_deactivated: bool
 
 
-class ShowUser(BaseModel):
+class UserResponse(NoExtraBaseModel):
     first_name: str
     last_name: str
     email: EmailStr
@@ -21,35 +26,37 @@ class ShowUser(BaseModel):
     is_deactivated: bool
 
 
-class UserCreate(BaseModel):
+class UserSignUp(NoExtraBaseModel):
     first_name: str
     last_name: str
     email: EmailStr
     password: str
 
 
-class UserUpdate(BaseModel):
+class UserUpdate(NoExtraBaseModel):
     first_name: str
     last_name: str
     email: EmailStr
 
 
-class UserVerifyEmail(BaseModel):
+class UserVerifyEmail(NoExtraBaseModel):
     email: EmailStr
     verification_code: str
 
-class UserResendVerificationEmail(BaseModel):
+
+class UserResendVerificationEmail(NoExtraBaseModel):
     email: EmailStr
 
-class Login(BaseModel):
+
+class UserLoginCredentials(NoExtraBaseModel):
     email: EmailStr
     password: str
 
 
-class LoginResponse(BaseModel):
+class UserLoginResponse(NoExtraBaseModel):
     access_token: str
-    user: ShowUser
+    user: UserResponse
 
 
-class TokenData(BaseModel):
+class TokenData(NoExtraBaseModel):
     email: Optional[str] = None
