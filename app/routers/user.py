@@ -14,7 +14,11 @@ from ..database.base import get_db
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.post("/sign-up", response_model=user_schemas.UserResponse)
+@router.post(
+    "/sign-up",
+    response_model=user_schemas.UserResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_user(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)):
     db_user = user_repository.get_one_by_email(req_body.email, db, True)
     if db_user:
