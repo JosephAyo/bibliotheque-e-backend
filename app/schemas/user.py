@@ -70,3 +70,9 @@ class UserResetPassword(NoExtraBaseModel):
     email: EmailStr
     password: str
     code: str
+
+
+class UserChangePassword(NoExtraBaseModel):
+    email: EmailStr
+    current_password: str
+    new_password: str

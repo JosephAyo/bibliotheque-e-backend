@@ -159,7 +159,8 @@ def reset_password(
         existing_user.reset_password_code,
     ):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=f"incorrect reset password code"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"incorrect reset password code",
         )
     user_repository.invalidate_auth_code(
         existing_user.id,
@@ -171,3 +172,30 @@ def reset_password(
     }
     user_repository.update(existing_user.id, update_data, db)
     return {"message": "success", "detail": "password reset"}
+
+
+@router.post("/change-password")
+def change_password(
+    req_body: user_schemas.UserChangePassword, db: Session = Depends(get_db)
+):
+    existing_user = user_repository.get_one_by_email(req_body.email, db)
+    if not verify_hash(
+        req_body.current_password,
+        existing_user.password,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"incorrect password"
+        )
+    if verify_hash(
+        req_body.new_password,
+        existing_user.password,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"new password cannot be same as old password",
+        )
+    update_data = {
+        "password": create_hash(req_body.new_password),
+    }
+    user_repository.update(existing_user.id, update_data, db)
+    return {"message": "success", "detail": "password changed"}
