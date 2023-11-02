@@ -3,14 +3,13 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.helpers.date_time import convert_db_timestamp_to_datetime
-from app.repository.hashing import verify_hash
+from app.repository.hashing import create_hash, verify_hash
 
 
 from ..repository import user as user_repository
 from ..repository import authentication as authentication_repository
 from ..schemas import user as user_schemas
 from ..database.base import get_db
-from ..database.models import user as user_models
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -27,7 +26,7 @@ def create_user(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)
         req_body,
         db,
     )
-    verification_code = authentication_repository.generate_verification_code()
+    verification_code = authentication_repository.generate_auth_code()
     user_repository.save_auth_code(
         created_user.id,
         "verification_code",
@@ -82,7 +81,7 @@ def resend_verification_email(
     req_body: user_schemas.UserResendVerificationEmail, db: Session = Depends(get_db)
 ):
     existing_user = user_repository.get_one_by_email(req_body.email, db)
-    verification_code = authentication_repository.generate_verification_code()
+    verification_code = authentication_repository.generate_auth_code()
     user_repository.save_auth_code(
         existing_user.id,
         "verification_code",
@@ -113,3 +112,62 @@ def login(
         data={"email": user.email}
     )
     return {"access_token": access_token, "user": user}
+
+
+@router.post("/forgot-password")
+def forgot_password(
+    req_body: user_schemas.UserForgotPassword, db: Session = Depends(get_db)
+):
+    existing_user = user_repository.get_one_by_email(req_body.email, db)
+    reset_password_code = authentication_repository.generate_auth_code()
+    user_repository.save_auth_code(
+        existing_user.id,
+        "reset_password_code",
+        reset_password_code,
+        db,
+    )
+    # send verification code to email
+    return {"message": "success", "detail": "reset password code sent"}
+
+
+@router.post("/reset-password")
+def reset_password(
+    req_body: user_schemas.UserResetPassword, db: Session = Depends(get_db)
+):
+    existing_user = user_repository.get_one_by_email(req_body.email, db)
+    if not (
+        existing_user.reset_password_code
+        and existing_user.reset_password_code_last_generated_at
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"invalid reset password code",
+        )
+    total_seconds = (
+        (convert_db_timestamp_to_datetime(db.query(func.now())))
+        - existing_user.reset_password_code_last_generated_at
+    ).total_seconds()
+
+    if total_seconds > (5 * 60):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"expired reset password code",
+        )
+
+    if not verify_hash(
+        req_body.code,
+        existing_user.reset_password_code,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"incorrect reset password code"
+        )
+    user_repository.invalidate_auth_code(
+        existing_user.id,
+        "reset_password_code",
+        db,
+    )
+    update_data = {
+        "password": create_hash(req_body.password),
+    }
+    user_repository.update(existing_user.id, update_data, db)
+    return {"message": "success", "detail": "password reset"}

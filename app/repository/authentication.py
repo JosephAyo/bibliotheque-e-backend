@@ -49,7 +49,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     # return user
 
 
-def generate_verification_code(length=6):
+def generate_auth_code(length=6):
     # Generate a random verification code of the specified length
     characters = (
         string.digits

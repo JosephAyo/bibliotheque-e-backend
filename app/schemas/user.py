@@ -60,3 +60,13 @@ class UserLoginResponse(NoExtraBaseModel):
 
 class TokenData(NoExtraBaseModel):
     email: Optional[str] = None
+
+
+class UserForgotPassword(NoExtraBaseModel):
+    email: EmailStr
+
+
+class UserResetPassword(NoExtraBaseModel):
+    email: EmailStr
+    password: str
+    code: str
