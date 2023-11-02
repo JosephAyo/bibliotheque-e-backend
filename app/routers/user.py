@@ -10,20 +10,21 @@ from ..repository import user as user_repository
 from ..repository import authentication as authentication_repository
 from ..schemas import user as user_schemas
 from ..database.base import get_db
+from ..database.models import user as user_models
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/sign-up", response_model=user_schemas.UserResponse)
-def create_user(user: user_schemas.UserSignUp, db: Session = Depends(get_db)):
-    db_user = user_repository.get_one_by_email(user.email, db, True)
+def create_user(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)):
+    db_user = user_repository.get_one_by_email(req_body.email, db, True)
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"user {user.email} already exists",
+            detail=f"user {req_body.email} already exists",
         )
     created_user = user_repository.create(
-        user,
+        req_body,
         db,
     )
     verification_code = authentication_repository.generate_verification_code()
@@ -38,8 +39,8 @@ def create_user(user: user_schemas.UserSignUp, db: Session = Depends(get_db)):
 
 
 @router.post("/verify-email")
-def verify_email(user: user_schemas.UserVerifyEmail, db: Session = Depends(get_db)):
-    existing_user = user_repository.get_one_by_email(user.email, db)
+def verify_email(req_body: user_schemas.UserVerifyEmail, db: Session = Depends(get_db)):
+    existing_user = user_repository.get_one_by_email(req_body.email, db)
     if not (
         existing_user.verification_code
         and existing_user.verification_code_last_generated_at
@@ -60,7 +61,7 @@ def verify_email(user: user_schemas.UserVerifyEmail, db: Session = Depends(get_d
         )
 
     if not verify_hash(
-        user.verification_code,
+        req_body.verification_code,
         existing_user.verification_code,
     ):
         raise HTTPException(
@@ -71,14 +72,16 @@ def verify_email(user: user_schemas.UserVerifyEmail, db: Session = Depends(get_d
         "verification_code",
         db,
     )
+    update_data = {"is_verified": True, "is_email_verified": True}
+    user_repository.update(existing_user.id, update_data, db)
     return {"message": "success", "detail": "email verified"}
 
 
 @router.post("/resend-verification/email")
 def resend_verification_email(
-    user: user_schemas.UserResendVerificationEmail, db: Session = Depends(get_db)
+    req_body: user_schemas.UserResendVerificationEmail, db: Session = Depends(get_db)
 ):
-    existing_user = user_repository.get_one_by_email(user.email, db)
+    existing_user = user_repository.get_one_by_email(req_body.email, db)
     verification_code = authentication_repository.generate_verification_code()
     user_repository.save_auth_code(
         existing_user.id,

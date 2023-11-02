@@ -33,7 +33,7 @@ class UserSignUp(NoExtraBaseModel):
     password: str
 
 
-class UserUpdate(NoExtraBaseModel):
+class UserEditProfile(NoExtraBaseModel):
     first_name: str
     last_name: str
     email: EmailStr

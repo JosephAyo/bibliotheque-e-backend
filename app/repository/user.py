@@ -50,14 +50,19 @@ def create(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)):
     return new_user
 
 
-def update(id, req_body: user_schemas.UserUpdate, db: Session = Depends(get_db)):
+def update(id, update_data: dict, db: Session = Depends(get_db)):
     user = db.query(user_models.User).get(id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"user {id} not available"
         )
-    user.first_name = req_body.first_name
-    user.last_name = req_body.last_name
+
+    for key, value in update_data.items():
+        if hasattr(user, key):
+            if (value is None) and (not user_models.User.__table__.c[key].nullable):
+                continue
+            setattr(user, key, value)
+
     db.commit()
 
 
@@ -79,6 +84,7 @@ def save_auth_code(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"user {id} not available"
         )
+    print(f"code:>>{code}")
     setattr(user, code_col_name, create_hash(code))
     setattr(user, code_col_name + "_last_generated_at", func.now())
     db.commit()
