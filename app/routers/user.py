@@ -1,3 +1,5 @@
+from logging import config
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -16,7 +18,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post(
     "/sign-up",
-    response_model=user_schemas.UserResponse,
+    response_model=user_schemas.ShowUser,
     status_code=status.HTTP_201_CREATED,
 )
 def create_user(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)):
@@ -203,3 +205,11 @@ def change_password(
     }
     user_repository.update(existing_user.id, update_data, db)
     return {"message": "success", "detail": "password changed"}
+
+
+@router.get(
+    "/profile",
+    response_model=user_schemas.UserViewProfile,
+)
+def view_profile(current_user=Depends(authentication_repository.get_current_user)):
+    return {"message": "success", "data": current_user}

@@ -17,13 +17,12 @@ class User(NoExtraBaseModel):
     is_deactivated: bool
 
 
-class UserResponse(NoExtraBaseModel):
+class ShowUser(NoExtraBaseModel):
     first_name: str
     last_name: str
     email: EmailStr
     is_email_verified: bool
     is_verified: bool
-    is_deactivated: bool
 
 
 class UserSignUp(NoExtraBaseModel):
@@ -31,12 +30,6 @@ class UserSignUp(NoExtraBaseModel):
     last_name: str
     email: EmailStr
     password: str
-
-
-class UserEditProfile(NoExtraBaseModel):
-    first_name: str
-    last_name: str
-    email: EmailStr
 
 
 class UserVerifyEmail(NoExtraBaseModel):
@@ -55,7 +48,7 @@ class UserLoginCredentials(NoExtraBaseModel):
 
 class UserLoginResponse(NoExtraBaseModel):
     access_token: str
-    user: UserResponse
+    user: ShowUser
 
 
 class TokenData(NoExtraBaseModel):
@@ -76,3 +69,8 @@ class UserChangePassword(NoExtraBaseModel):
     email: EmailStr
     current_password: str
     new_password: str
+
+
+class UserViewProfile(NoExtraBaseModel):
+    message: str
+    data: ShowUser
