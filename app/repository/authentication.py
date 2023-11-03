@@ -19,6 +19,8 @@ oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/users/login",
 )
 
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login", auto_error=False)
+
 
 def create_access_token(data: Union[str, Any], expires_delta: timedelta | None = None):
     if expires_delta:
@@ -55,6 +57,26 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
     return user
+
+
+async def get_current_user_or_none(
+    token: Annotated[str, Depends(optional_oauth2_scheme)]
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    if token:
+        token_data = verify_token(
+            token=token, credentials_exception=credentials_exception
+        )
+        db = SessionLocal()
+        data = json.loads(token_data.replace("'", '"'))
+        user = user_repository.get_one_by_email(data["email"], db)
+        db.close()
+        return user
+    return None
 
 
 def generate_auth_code(length=6):
