@@ -62,7 +62,6 @@ def update(id, update_data: dict, db: Session = Depends(get_db)):
             if (value is None) and (not user_models.User.__table__.c[key].nullable):
                 continue
             setattr(user, key, value)
-
     db.commit()
 
 

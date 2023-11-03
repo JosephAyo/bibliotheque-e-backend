@@ -182,19 +182,20 @@ def reset_password(
 
 @router.patch("/change-password")
 def change_password(
-    req_body: user_schemas.UserChangePassword, db: Session = Depends(get_db)
+    req_body: user_schemas.UserChangePassword,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_user),
 ):
-    existing_user = user_repository.get_one_by_email(req_body.email, db)
     if not verify_hash(
         req_body.current_password,
-        existing_user.password,
+        current_user.password,
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail=f"incorrect password"
         )
     if verify_hash(
         req_body.new_password,
-        existing_user.password,
+        current_user.password,
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -203,7 +204,7 @@ def change_password(
     update_data = {
         "password": create_hash(req_body.new_password),
     }
-    user_repository.update(existing_user.id, update_data, db)
+    user_repository.update(current_user.id, update_data, db)
     return {"message": "success", "detail": "password changed"}
 
 
@@ -213,3 +214,16 @@ def change_password(
 )
 def view_profile(current_user=Depends(authentication_repository.get_current_user)):
     return {"message": "success", "data": current_user}
+
+
+@router.patch(
+    "/profile",
+)
+def edit_profile(
+    req_body: user_schemas.UserEditProfile,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_user),
+):
+    update_data = {"first_name": req_body.first_name, "last_name": req_body.last_name}
+    user_repository.update(current_user.id, update_data, db)
+    return {"message": "success", "detail": "profile updated"}

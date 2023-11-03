@@ -66,7 +66,6 @@ class UserResetPassword(NoExtraBaseModel):
 
 
 class UserChangePassword(NoExtraBaseModel):
-    email: EmailStr
     current_password: str
     new_password: str
 
@@ -74,3 +73,8 @@ class UserChangePassword(NoExtraBaseModel):
 class UserViewProfile(NoExtraBaseModel):
     message: str
     data: ShowUser
+
+
+class UserEditProfile(NoExtraBaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
