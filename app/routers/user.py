@@ -41,7 +41,7 @@ def create_user(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)
     return created_user
 
 
-@router.post("/verify-email")
+@router.patch("/verify-email")
 def verify_email(req_body: user_schemas.UserVerifyEmail, db: Session = Depends(get_db)):
     existing_user = user_repository.get_one_by_email(req_body.email, db)
     if not (
@@ -118,7 +118,7 @@ def login(
     return {"access_token": access_token, "user": user}
 
 
-@router.post("/forgot-password")
+@router.patch("/forgot-password")
 def forgot_password(
     req_body: user_schemas.UserForgotPassword, db: Session = Depends(get_db)
 ):
@@ -134,7 +134,7 @@ def forgot_password(
     return {"message": "success", "detail": "reset password code sent"}
 
 
-@router.post("/reset-password")
+@router.patch("/reset-password")
 def reset_password(
     req_body: user_schemas.UserResetPassword, db: Session = Depends(get_db)
 ):
@@ -178,7 +178,7 @@ def reset_password(
     return {"message": "success", "detail": "password reset"}
 
 
-@router.post("/change-password")
+@router.patch("/change-password")
 def change_password(
     req_body: user_schemas.UserChangePassword, db: Session = Depends(get_db)
 ):
