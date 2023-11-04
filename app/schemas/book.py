@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from pydantic import BaseModel
 
@@ -7,14 +8,21 @@ class NoExtraBaseModel(BaseModel):
         extra = "forbid"
 
 
-class Book(NoExtraBaseModel):
-    id: str
+class CreateBook(NoExtraBaseModel):
     title: str
     author_name: str
     description: str
-    total_quantity: int
     public_shelf_quantity: int
     private_shelf_quantity: int
+
+
+class Book(CreateBook):
+    id: str
+    proprietor_id: str
+    created_at: datetime
+    updated_at: datetime
+    is_deleted: bool
+    deleted_at: datetime
 
 
 class ShowBook(NoExtraBaseModel):
@@ -22,6 +30,8 @@ class ShowBook(NoExtraBaseModel):
     title: str
     author_name: str
     description: str
+    created_at: datetime
+    updated_at: datetime
 
 
 class ShowBookPublic(ShowBook):
@@ -30,15 +40,26 @@ class ShowBookPublic(ShowBook):
 
 class ShowBookPublicResponse(NoExtraBaseModel):
     message: str
+    data: ShowBookPublic
+
+
+class ShowBooksPublicResponse(NoExtraBaseModel):
+    message: str
     data: List[ShowBookPublic]
 
 
 class ShowBookPrivate(ShowBook):
+    proprietor_id: str
     total_quantity: int
     public_shelf_quantity: int
     private_shelf_quantity: int
 
 
 class ShowBookPrivateResponse(NoExtraBaseModel):
+    message: str
+    data: ShowBookPrivate
+
+
+class ShowBooksPrivateResponse(NoExtraBaseModel):
     message: str
     data: List[ShowBookPrivate]
