@@ -74,5 +74,4 @@ class EditBook(NoExtraBaseModel):
     title: str
     author_name: str
     description: str
-    public_shelf_quantity: int
     private_shelf_quantity: int
