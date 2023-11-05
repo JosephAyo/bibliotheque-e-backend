@@ -62,6 +62,7 @@ def update(id, update_data: dict, db: Session = Depends(get_db)):
             if (value is None) and (not user_models.User.__table__.c[key].nullable):
                 continue
             setattr(user, key, value)
+    setattr(user, 'updated_at', func.now())
     db.commit()
 
 
@@ -85,6 +86,7 @@ def save_auth_code(
         )
     setattr(user, code_col_name, create_hash(code))
     setattr(user, code_col_name + "_last_generated_at", func.now())
+    setattr(user, 'updated_at', func.now())
     db.commit()
 
 
@@ -103,4 +105,5 @@ def invalidate_auth_code(id: str, code_col_name: str, db: Session = Depends(get_
             - datetime.timedelta(days=40)
         ),
     )
+    setattr(user, 'updated_at', func.now())
     db.commit()

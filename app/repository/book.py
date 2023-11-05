@@ -1,5 +1,6 @@
 from typing import List, Union
 from fastapi import Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from ..database.models import book as book_models
 from ..database.base import get_db
@@ -10,7 +11,7 @@ from ..schemas import book as book_schemas
 def get_all(
     current_user: Union[user_schemas.User, None], db: Session = Depends(get_db)
 ):
-    query = db.query(book_models.Book)
+    query = db.query(book_models.Book).order_by(book_models.Book.updated_at.desc())
 
     if current_user is None:
         user_books: List[book_schemas.ShowBookPublic] = query.filter(
@@ -64,6 +65,7 @@ def update(id, update_data: dict, db: Session = Depends(get_db)):
             if (value is None) and (not book_models.Book.__table__.c[key].nullable):
                 continue
             setattr(book, key, value)
+    setattr(book, 'updated_at', func.now())
     db.commit()
 
 
