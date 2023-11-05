@@ -9,6 +9,7 @@ from app.repository.hashing import create_hash, verify_hash
 from ..repository import user as user_repository
 from ..repository import authentication as authentication_repository
 from ..schemas import user as user_schemas
+from ..schemas import generic as generic_schemas
 from ..database.base import get_db
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -41,7 +42,7 @@ def create_user(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)
     return created_user
 
 
-@router.patch("/verify-email")
+@router.patch("/verify-email", response_model=generic_schemas.NoDataResponse)
 def verify_email(req_body: user_schemas.UserVerifyEmail, db: Session = Depends(get_db)):
     existing_user = user_repository.get_one_by_email(req_body.email, db)
     if not (
@@ -80,7 +81,9 @@ def verify_email(req_body: user_schemas.UserVerifyEmail, db: Session = Depends(g
     return {"message": "success", "detail": "email verified"}
 
 
-@router.post("/resend-verification/email")
+@router.post(
+    "/resend-verification/email", response_model=generic_schemas.NoDataResponse
+)
 def resend_verification_email(
     req_body: user_schemas.UserResendVerificationEmail, db: Session = Depends(get_db)
 ):
@@ -118,7 +121,7 @@ def login(
     return {"access_token": access_token, "user": user}
 
 
-@router.patch("/forgot-password")
+@router.patch("/forgot-password", response_model=generic_schemas.NoDataResponse)
 def forgot_password(
     req_body: user_schemas.UserForgotPassword, db: Session = Depends(get_db)
 ):
@@ -134,7 +137,7 @@ def forgot_password(
     return {"message": "success", "detail": "reset password code sent"}
 
 
-@router.patch("/reset-password")
+@router.patch("/reset-password", response_model=generic_schemas.NoDataResponse)
 def reset_password(
     req_body: user_schemas.UserResetPassword, db: Session = Depends(get_db)
 ):
@@ -178,7 +181,7 @@ def reset_password(
     return {"message": "success", "detail": "password reset"}
 
 
-@router.patch("/change-password")
+@router.patch("/change-password", response_model=generic_schemas.NoDataResponse)
 def change_password(
     req_body: user_schemas.UserChangePassword,
     db: Session = Depends(get_db),
@@ -214,9 +217,7 @@ def view_profile(current_user=Depends(authentication_repository.get_current_user
     return {"message": "success", "data": current_user}
 
 
-@router.patch(
-    "/profile",
-)
+@router.patch("/profile", response_model=generic_schemas.NoDataResponse)
 def edit_profile(
     req_body: user_schemas.UserEditProfile,
     db: Session = Depends(get_db),

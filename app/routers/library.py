@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status
 from ..schemas import book as book_schemas
+from ..schemas import generic as generic_schemas
 from ..repository import book as book_repository
 from sqlalchemy.orm import Session
 from ..database.base import get_db
@@ -55,9 +56,7 @@ def create_book(
     return {"message": "success", "data": created_book}
 
 
-@router.patch(
-    "/",
-)
+@router.patch("/", response_model=generic_schemas.NoDataResponse)
 def edit_book(
     req_body: book_schemas.EditBook,
     db: Session = Depends(get_db),
