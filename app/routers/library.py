@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from ..schemas import book as book_schemas
 from ..schemas import generic as generic_schemas
 from ..repository import book as book_repository
@@ -78,3 +78,33 @@ def delete_book(
     book_repository.get_proprietor_book(id, current_user.id, db)
     book_repository.destroy(id, db)
     return {"message": "success", "detail": "book deleted"}
+
+
+@router.get(
+    "/search",
+    response_model=book_schemas.ShowBooksPublicResponse,
+    status_code=status.HTTP_200_OK,
+)
+def search_for_books(
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_user_or_none),
+    query: str = Query(None, description="Search books by title, author & description"),
+):
+    books = book_repository.search(current_user, query, db)
+    data = {"message": "success", "data": books}
+    return data
+
+
+@router.get(
+    "/search/managed",
+    response_model=book_schemas.ShowBooksPrivateResponse,
+    status_code=status.HTTP_200_OK,
+)
+def search_for_managed_books(
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_user),
+    query: str = Query(None, description="Search books by title, author & description"),
+):
+    books = book_repository.search(current_user, query, db)
+    data = {"message": "success", "data": books}
+    return data
