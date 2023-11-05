@@ -67,3 +67,14 @@ def edit_book(
     delattr(req_body, "id")
     book_repository.update(id, dict(req_body), db)
     return {"message": "success", "detail": "book updated"}
+
+
+@router.delete("/{id}", response_model=generic_schemas.NoDataResponse)
+def delete_book(
+    id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_user),
+):
+    book_repository.get_proprietor_book(id, current_user.id, db)
+    book_repository.destroy(id, db)
+    return {"message": "success", "detail": "book deleted"}

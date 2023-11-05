@@ -65,3 +65,13 @@ def update(id, update_data: dict, db: Session = Depends(get_db)):
                 continue
             setattr(book, key, value)
     db.commit()
+
+
+def destroy(id, db: Session = Depends(get_db)):
+    book = db.query(book_models.Book).filter_by(id=id)
+    if not book.first():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"book {id} not available"
+        )
+    book.delete(synchronize_session=False)
+    db.commit()
