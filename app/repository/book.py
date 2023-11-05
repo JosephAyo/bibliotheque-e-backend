@@ -1,6 +1,6 @@
 from typing import List, Union
 from fastapi import Depends
-from sqlalchemy.orm import Session, defer
+from sqlalchemy.orm import Session
 from ..database.models import book as book_models
 from ..database.base import get_db
 from ..schemas import user as user_schemas
@@ -13,29 +13,12 @@ def get_all(
     query = db.query(book_models.Book)
 
     if current_user is None:
-        columns_to_exclude = [
-            "private_shelf_quantity",
-            "total_quantity",
-            "proprietor_id",
-            "is_deleted",
-            "deleted_at",
-        ]
-        for column_name in columns_to_exclude:
-            query = query.options(defer(getattr(book_models.Book, column_name)))
-
         user_books: List[book_schemas.ShowBookPublic] = query.filter(
             book_models.Book.public_shelf_quantity > 0
         ).all()
         return user_books
 
     else:
-        columns_to_exclude = [
-            "is_deleted",
-            "deleted_at",
-        ]
-        for column_name in columns_to_exclude:
-            query = query.options(defer(getattr(book_models.Book, column_name)))
-
         librarian_and_proprietor_books: List[book_schemas.ShowBookPrivate] = query.all()
         return librarian_and_proprietor_books
 

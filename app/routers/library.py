@@ -11,13 +11,27 @@ router = APIRouter(prefix="/library/books", tags=["Library"])
 
 @router.get(
     "/",
+    response_model=book_schemas.ShowBooksPublicResponse,
     status_code=status.HTTP_200_OK,
 )
 def view_books(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_user_or_none),
 ):
+    books = book_repository.get_all(current_user, db)
+    data = {"message": "success", "data": books}
+    return data
 
+
+@router.get(
+    "/managed",
+    response_model=book_schemas.ShowBooksPrivateResponse,
+    status_code=status.HTTP_200_OK,
+)
+def view_managed_books(
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_user),
+):
     books = book_repository.get_all(current_user, db)
     data = {"message": "success", "data": books}
     return data
