@@ -53,3 +53,18 @@ def create_book(
         db,
     )
     return {"message": "success", "data": created_book}
+
+
+@router.patch(
+    "/",
+)
+def edit_book(
+    req_body: book_schemas.EditBook,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_user),
+):
+    id = req_body.id
+    book_repository.get_proprietor_book(id, current_user.id, db)
+    delattr(req_body, "id")
+    book_repository.update(id, dict(req_body), db)
+    return {"message": "success", "detail": "book updated"}

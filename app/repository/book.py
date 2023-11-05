@@ -1,5 +1,5 @@
 from typing import List, Union
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..database.models import book as book_models
 from ..database.base import get_db
@@ -39,3 +39,29 @@ def create(
     db.commit()
     db.refresh(new_book)
     return new_book
+
+
+def get_proprietor_book(id: str, proprietor_id: str, db: Session = Depends(get_db)):
+    book = (
+        db.query(book_models.Book).filter_by(id=id, proprietor_id=proprietor_id).first()
+    )
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"book {id} not available"
+        )
+    return book
+
+
+def update(id, update_data: dict, db: Session = Depends(get_db)):
+    book = db.query(book_models.Book).get(id)
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"book {id} not available"
+        )
+
+    for key, value in update_data.items():
+        if hasattr(book, key):
+            if (value is None) and (not book_models.Book.__table__.c[key].nullable):
+                continue
+            setattr(book, key, value)
+    db.commit()

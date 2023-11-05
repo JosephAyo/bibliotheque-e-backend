@@ -67,3 +67,12 @@ class ShowBooksPrivateResponse(NoExtraBaseModel):
     data: List[ShowBookPrivate]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class EditBook(NoExtraBaseModel):
+    id: str
+    title: str
+    author_name: str
+    description: str
+    public_shelf_quantity: int
+    private_shelf_quantity: int
