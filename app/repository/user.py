@@ -5,6 +5,7 @@ from sqlalchemy import func
 from ..database.base import get_db
 from ..schemas import user as user_schemas
 from ..database.models import user as user_models
+from ..database.models import user_role_association as user_role_association_models
 
 from sqlalchemy.orm import Session
 from .hashing import create_hash
@@ -62,7 +63,7 @@ def update(id, update_data: dict, db: Session = Depends(get_db)):
             if (value is None) and (not user_models.User.__table__.c[key].nullable):
                 continue
             setattr(user, key, value)
-    setattr(user, 'updated_at', func.now())
+    setattr(user, "updated_at", func.now())
     db.commit()
 
 
@@ -86,7 +87,7 @@ def save_auth_code(
         )
     setattr(user, code_col_name, create_hash(code))
     setattr(user, code_col_name + "_last_generated_at", func.now())
-    setattr(user, 'updated_at', func.now())
+    setattr(user, "updated_at", func.now())
     db.commit()
 
 
@@ -105,5 +106,18 @@ def invalidate_auth_code(id: str, code_col_name: str, db: Session = Depends(get_
             - datetime.timedelta(days=40)
         ),
     )
-    setattr(user, 'updated_at', func.now())
+    setattr(user, "updated_at", func.now())
     db.commit()
+
+
+def create_user_role_association(
+    data: user_schemas.CreateUserRoleAssociation, db: Session = Depends(get_db)
+):
+    new_user_role_association = user_role_association_models.UserRoleAssociation(
+        user_id=data.user_id,
+        role_id=data.role_id,
+    )
+    db.add(new_user_role_association)
+    db.commit()
+    db.refresh(new_user_role_association)
+    return new_user_role_association

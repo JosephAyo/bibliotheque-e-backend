@@ -8,7 +8,7 @@ class Role(Base):
     id = Column(
         "id", Text(length=36), default=lambda: str(uuid.uuid4()), primary_key=True
     )
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, unique=True)
     description = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)

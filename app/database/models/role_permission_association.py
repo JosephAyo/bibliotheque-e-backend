@@ -8,7 +8,7 @@ class RolePermissionAssociation(Base):
     id = Column(
         "id", Text(length=36), default=lambda: str(uuid.uuid4()), primary_key=True
     )
-    user_id = Column(Text(length=36), ForeignKey("user.id"), nullable=False)
+    role_id = Column(Text(length=36), ForeignKey("role.id"), nullable=False)
     permission_id = Column(Text(length=36), ForeignKey("permission.id"), nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)

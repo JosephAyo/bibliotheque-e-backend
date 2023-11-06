@@ -1,11 +1,16 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
+
+from .config.users import create_default_roles_and_permissions, create_default_users
 from .routers import library, user
 from .database.base import engine
 from .database.models import user as user_model
 from .database.models import role as role_model
 from .database.models import permission as permission_model
 from .database.models import user_role_association as user_role_association_model
-from .database.models import role_permission_association as role_permission_association_model
+from .database.models import (
+    role_permission_association as role_permission_association_model,
+)
 from .database.models import suspension_log as suspension_log_model
 from .database.models import book as book_model
 from .database.models import genre as genre_model
@@ -15,7 +20,18 @@ from .database.models import notification as notification_model
 from .database.models import faq as faq_model
 from .database.models import app_log as app_log_model
 
-app = FastAPI()
+# app = FastAPI()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_default_roles_and_permissions()
+    create_default_users()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
 user_model.Base.metadata.create_all(engine)
 role_model.Base.metadata.create_all(engine)
 permission_model.Base.metadata.create_all(engine)

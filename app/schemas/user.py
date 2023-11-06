@@ -78,3 +78,8 @@ class UserViewProfile(NoExtraBaseModel):
 class UserEditProfile(NoExtraBaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+
+
+class CreateUserRoleAssociation(NoExtraBaseModel):
+    user_id: str
+    role_id: str
