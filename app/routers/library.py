@@ -25,11 +25,11 @@ def view_books(
 
 
 @router.get(
-    "/managed",
+    "/manager",
     response_model=book_schemas.ShowBooksPrivateResponse,
     status_code=status.HTTP_200_OK,
 )
-def view_managed_books(
+def view_manager_books(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_manager_user),
 ):
@@ -96,11 +96,11 @@ def search_for_books(
 
 
 @router.get(
-    "/search/managed",
+    "/search/manager",
     response_model=book_schemas.ShowBooksPrivateResponse,
     status_code=status.HTTP_200_OK,
 )
-def search_for_managed_books(
+def search_for_manager_books(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_manager_user),
     query: str = Query(None, description="Search books by title, author & description"),

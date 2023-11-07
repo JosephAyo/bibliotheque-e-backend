@@ -39,8 +39,6 @@ def search(
                 book_models.Book.description.ilike(f"%{search_string}%"),
             )
         )
-        # .filter(func.lower(book_models.Book.author_name).ilike(f"%{search_string}%"))
-        # .filter(func.lower(book_models.Book.description).ilike(f"%{search_string}%"))
     )
 
     if current_user is None:
