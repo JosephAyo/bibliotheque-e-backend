@@ -21,8 +21,6 @@ class Book(CreateBook):
     proprietor_id: str
     created_at: datetime
     updated_at: datetime
-    is_deleted: bool
-    deleted_at: datetime
 
 
 class ShowBook(NoExtraBaseModel):

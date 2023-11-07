@@ -18,14 +18,13 @@ class Role(CreateRole):
     description: str
     created_at: datetime
     updated_at: datetime
-    is_deleted: bool
-    deleted_at: datetime
 
 
 class EditRole(NoExtraBaseModel):
     id: str
     name: str
     description: str
+
 
 class CreateRolePermissionAssociation(NoExtraBaseModel):
     role_id: str

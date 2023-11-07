@@ -18,8 +18,6 @@ class Permission(CreatePermission):
     description: str
     created_at: datetime
     updated_at: datetime
-    is_deleted: bool
-    deleted_at: datetime
 
 
 class EditPermission(NoExtraBaseModel):

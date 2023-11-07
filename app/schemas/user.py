@@ -1,5 +1,7 @@
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
+from .role import Role
 
 
 class NoExtraBaseModel(BaseModel):
@@ -70,16 +72,29 @@ class UserChangePassword(NoExtraBaseModel):
     new_password: str
 
 
+class CreateUserRoleAssociation(NoExtraBaseModel):
+    user_id: str
+    role_id: str
+
+
+class ShowUserRoleAssociation(CreateUserRoleAssociation):
+    id: str
+    user_id: str
+    role_id: str
+    created_at: datetime
+    updated_at: datetime
+    role: Role
+
+
+class UserViewProfileData(ShowUser):
+    user_role_associations: List[ShowUserRoleAssociation] = []
+
+
 class UserViewProfile(NoExtraBaseModel):
     message: str
-    data: ShowUser
+    data: UserViewProfileData
 
 
 class UserEditProfile(NoExtraBaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-
-
-class CreateUserRoleAssociation(NoExtraBaseModel):
-    user_id: str
-    role_id: str

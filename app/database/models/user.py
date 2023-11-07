@@ -1,5 +1,5 @@
 from sqlalchemy import TIMESTAMP, Boolean, Column, Enum, Integer, String, Text, func
-
+from sqlalchemy.orm import relationship
 from ..enums import EnumSuspensionStatus
 from ..base import Base
 import uuid
@@ -32,3 +32,5 @@ class User(Base):
     is_deleted = Column(Boolean, default=False)
     deleted_at = Column(TIMESTAMP)
     deactivated_at = Column(TIMESTAMP)
+
+    user_role_associations = relationship("UserRoleAssociation", lazy=False)

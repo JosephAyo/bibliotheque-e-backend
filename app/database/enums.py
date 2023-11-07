@@ -14,7 +14,7 @@ class EnumSuspensionStatus(Enum):
 
 class UserRole(Enum):
     BORROWER = "borrower"
-    PROPRIETOR = "lender"
+    PROPRIETOR = "proprietor"
     LIBRARIAN = "librarian"
 
 

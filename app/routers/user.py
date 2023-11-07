@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from app.database.models.user_role_association import UserRoleAssociation
 
 from app.helpers.date_time import convert_db_timestamp_to_datetime
 from app.repository.hashing import create_hash, verify_hash
@@ -213,7 +214,9 @@ def change_password(
     "/profile",
     response_model=user_schemas.UserViewProfile,
 )
-def view_profile(current_user=Depends(authentication_repository.get_current_user)):
+def view_profile(
+    current_user=Depends(authentication_repository.get_current_manager_user),
+):
     return {"message": "success", "data": current_user}
 
 
