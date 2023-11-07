@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 SQLALCHEMY_DATABASE = "sqlite:///./bibliotheque-e.db"
-engine = create_engine(SQLALCHEMY_DATABASE, connect_args={"check_same_thread": False},echo=True)
+engine = create_engine(SQLALCHEMY_DATABASE, connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 

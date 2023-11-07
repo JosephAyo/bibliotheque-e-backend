@@ -33,4 +33,6 @@ class User(Base):
     deleted_at = Column(TIMESTAMP)
     deactivated_at = Column(TIMESTAMP)
 
-    user_role_associations = relationship("UserRoleAssociation", lazy=False)
+    user_role_associations = relationship(
+        "UserRoleAssociation", lazy=False, viewonly=True
+    )

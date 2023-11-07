@@ -31,7 +31,7 @@ def view_books(
 )
 def view_managed_books(
     db: Session = Depends(get_db),
-    current_user=Depends(authentication_repository.get_current_user),
+    current_user=Depends(authentication_repository.get_current_manager_user),
 ):
     books = book_repository.get_all(current_user, db)
     data = {"message": "success", "data": books}
@@ -46,7 +46,7 @@ def view_managed_books(
 def create_book(
     req_body: book_schemas.CreateBook,
     db: Session = Depends(get_db),
-    current_user=Depends(authentication_repository.get_current_user),
+    current_user=Depends(authentication_repository.get_current_manager_user),
 ):
     created_book = book_repository.create(
         req_body,
@@ -60,7 +60,7 @@ def create_book(
 def edit_book(
     req_body: book_schemas.EditBook,
     db: Session = Depends(get_db),
-    current_user=Depends(authentication_repository.get_current_user),
+    current_user=Depends(authentication_repository.get_current_manager_user),
 ):
     id = req_body.id
     book_repository.get_proprietor_book(id, current_user.id, db)
@@ -73,7 +73,7 @@ def edit_book(
 def delete_book(
     id: str,
     db: Session = Depends(get_db),
-    current_user=Depends(authentication_repository.get_current_user),
+    current_user=Depends(authentication_repository.get_current_manager_user),
 ):
     book_repository.get_proprietor_book(id, current_user.id, db)
     book_repository.destroy(id, db)
@@ -102,7 +102,7 @@ def search_for_books(
 )
 def search_for_managed_books(
     db: Session = Depends(get_db),
-    current_user=Depends(authentication_repository.get_current_user),
+    current_user=Depends(authentication_repository.get_current_manager_user),
     query: str = Query(None, description="Search books by title, author & description"),
 ):
     books = book_repository.search(current_user, query, db)
