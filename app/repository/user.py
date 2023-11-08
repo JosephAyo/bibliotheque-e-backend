@@ -102,7 +102,7 @@ def invalidate_auth_code(id: str, code_col_name: str, db: Session = Depends(get_
         user,
         code_col_name + "_last_generated_at",
         (
-            getattr(user, code_col_name + "_last_generated_at", datetime.datetime.now())
+            getattr(user, code_col_name + "_last_generated_at", datetime.datetime.utcnow())
             - datetime.timedelta(days=40)
         ),
     )

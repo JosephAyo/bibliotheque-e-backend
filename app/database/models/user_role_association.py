@@ -1,7 +1,8 @@
-from sqlalchemy import TIMESTAMP, Boolean, Column, ForeignKey, Text, func
+from sqlalchemy import DateTime, Boolean, Column, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from ..base import Base
 import uuid
+import datetime
 
 
 class UserRoleAssociation(Base):
@@ -11,10 +12,10 @@ class UserRoleAssociation(Base):
     )
     user_id = Column(Text(length=36), ForeignKey("user.id"), nullable=False)
     role_id = Column(Text(length=36), ForeignKey("role.id"), nullable=False)
-    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    updated_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    created_at =  Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    updated_at =  Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     is_deleted = Column(Boolean, default=False)
-    deleted_at = Column(TIMESTAMP)
+    deleted_at =  Column(DateTime)
 
     users = relationship("User", lazy=False)
     role = relationship("Role",  lazy=False)

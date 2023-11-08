@@ -1,9 +1,8 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.database.enums import UserRole
 
-from ..helpers.date_time import convert_db_timestamp_to_datetime
 from ..repository.hashing import create_hash, verify_hash
 
 
@@ -64,8 +63,7 @@ def verify_email(req_body: user_schemas.UserVerifyEmail, db: Session = Depends(g
             detail=f"invalid verification code",
         )
     total_seconds = (
-        (convert_db_timestamp_to_datetime(db.query(func.now())))
-        - existing_user.verification_code_last_generated_at
+        datetime.utcnow() - existing_user.verification_code_last_generated_at
     ).total_seconds()
 
     if total_seconds > (5 * 60):
@@ -159,8 +157,7 @@ def reset_password(
             detail=f"invalid reset password code",
         )
     total_seconds = (
-        (convert_db_timestamp_to_datetime(db.query(func.now())))
-        - existing_user.reset_password_code_last_generated_at
+        datetime.utcnow() - existing_user.reset_password_code_last_generated_at
     ).total_seconds()
 
     if total_seconds > (5 * 60):

@@ -127,7 +127,7 @@ def view_proprietor_book_list(
 
 @router.get(
     "/borrower",
-    # response_model=check_in_out_schemas.CheckInOutListResponse,
+    response_model=check_in_out_schemas.CheckInOutListResponse,
     status_code=status.HTTP_200_OK,
 )
 def view_borrowed_books(
@@ -141,7 +141,7 @@ def view_borrowed_books(
 
 @router.put(
     "/borrower",
-    # response_model=check_in_out_schemas.CheckInOutResponse,
+    response_model=check_in_out_schemas.CheckInOutResponse,
     status_code=status.HTTP_200_OK,
 )
 def borrow_book(
@@ -159,13 +159,13 @@ def borrow_book(
 
 @router.patch(
     "/borrower",
-    # response_model=check_in_out_schemas.CheckInOutResponse,
+    response_model=check_in_out_schemas.CheckInOutResponse,
     status_code=status.HTTP_200_OK,
 )
 def return_book(
+    req_body: check_in_out_schemas.ReturnBook,
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_borrower_user),
-    req_body=check_in_out_schemas.ReturnBook,
 ):
     books = check_in_out_repository.check_in_book(req_body.id, current_user.id, db)
     data = {"message": "success", "data": books}

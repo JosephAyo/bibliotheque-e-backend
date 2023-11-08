@@ -17,10 +17,10 @@ class CreateCheckInOut(NoExtraBaseModel):
 class ShowCheckInOut(CreateCheckInOut):
     id: str
     borrower_id: str
-    checked_out_at: str
+    checked_out_at: datetime
     due_at: datetime
     returned: bool
-    returned_at: datetime
+    returned_at: Optional[datetime] = None
     fine_owed: Optional[float] = 0
     fine_paid: Optional[float] = 0
     created_at: datetime

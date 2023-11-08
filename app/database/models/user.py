@@ -1,8 +1,9 @@
-from sqlalchemy import TIMESTAMP, Boolean, Column, Enum, Integer, String, Text, func
+from sqlalchemy import DateTime, Boolean, Column, Enum, Integer, String, Text
 from sqlalchemy.orm import relationship
 from ..enums import EnumSuspensionStatus
 from ..base import Base
 import uuid
+import datetime
 
 
 class User(Base):
@@ -23,15 +24,15 @@ class User(Base):
     otp = Column(Text)
     verification_code = Column(Text)
     reset_password_code = Column(Text)
-    verification_code_last_generated_at = Column(TIMESTAMP)
-    reset_password_code_last_generated_at = Column(TIMESTAMP)
-    last_login = Column(TIMESTAMP)
-    password_reset_at = Column(TIMESTAMP)
-    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    updated_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    verification_code_last_generated_at =  Column(DateTime)
+    reset_password_code_last_generated_at =  Column(DateTime)
+    last_login =  Column(DateTime)
+    password_reset_at =  Column(DateTime)
+    created_at =  Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    updated_at =  Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     is_deleted = Column(Boolean, default=False)
-    deleted_at = Column(TIMESTAMP)
-    deactivated_at = Column(TIMESTAMP)
+    deleted_at =  Column(DateTime)
+    deactivated_at =  Column(DateTime)
 
     user_role_associations = relationship(
         "UserRoleAssociation", lazy=False, viewonly=True

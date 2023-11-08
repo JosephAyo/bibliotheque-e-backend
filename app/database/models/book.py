@@ -1,16 +1,16 @@
 from sqlalchemy import (
-    TIMESTAMP,
+    DateTime,
     Boolean,
     Column,
     ForeignKey,
     Integer,
     String,
     Text,
-    func,
 )
 from sqlalchemy.orm import relationship
 from ..base import Base
 import uuid
+import datetime
 
 
 class Book(Base):
@@ -25,10 +25,10 @@ class Book(Base):
     total_quantity = Column(Integer, nullable=False, default=0)
     public_shelf_quantity = Column(Integer, nullable=False, default=0)
     private_shelf_quantity = Column(Integer, nullable=False, default=0)
-    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    updated_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    created_at =  Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    updated_at =  Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     is_deleted = Column(Boolean, default=False)
-    deleted_at = Column(TIMESTAMP)
+    deleted_at =  Column(DateTime)
 
     check_in_outs = relationship("CheckInOut")
 
