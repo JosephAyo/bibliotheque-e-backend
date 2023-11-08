@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from app.database.enums import UserRole
 
-from app.helpers.date_time import convert_db_timestamp_to_datetime
-from app.repository.hashing import create_hash, verify_hash
+from ..helpers.date_time import convert_db_timestamp_to_datetime
+from ..repository.hashing import create_hash, verify_hash
 
 
 from ..repository import user as user_repository
@@ -11,6 +12,7 @@ from ..repository import authentication as authentication_repository
 from ..schemas import user as user_schemas
 from ..schemas import generic as generic_schemas
 from ..database.base import get_db
+from ..repository import role as role_repository
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -31,6 +33,14 @@ def create_user(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)
         req_body,
         db,
     )
+    user_role = role_repository.get_one_by_name(UserRole.BORROWER.value, db, True)
+    if user_role is not None:
+        user_repository.create_user_role_association(
+            user_schemas.CreateUserRoleAssociation(
+                **{"user_id": created_user.id, "role_id": user_role.id}
+            ),
+            db,
+        )
     verification_code = authentication_repository.generate_auth_code()
     user_repository.save_auth_code(
         created_user.id,
@@ -115,9 +125,7 @@ def login(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail=f"incorrect credentials"
         )
-    access_token = authentication_repository.create_access_token(
-        data={"id": user.id}
-    )
+    access_token = authentication_repository.create_access_token(data={"id": user.id})
     return {"access_token": access_token, "user": user}
 
 

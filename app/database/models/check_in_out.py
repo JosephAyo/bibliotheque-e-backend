@@ -1,4 +1,5 @@
 from sqlalchemy import DECIMAL, TIMESTAMP, Boolean, Column, ForeignKey, Text, func
+from sqlalchemy.orm import relationship
 from ..base import Base
 import uuid
 
@@ -20,3 +21,5 @@ class CheckInOut(Base):
     updated_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     is_deleted = Column(Boolean, default=False)
     deleted_at = Column(TIMESTAMP)
+
+    book = relationship("Book", lazy=False, back_populates="check_in_outs")

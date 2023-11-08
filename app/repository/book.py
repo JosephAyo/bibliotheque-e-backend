@@ -1,27 +1,95 @@
 from typing import List, Union
 from fastapi import Depends, HTTPException, status
-from sqlalchemy import func, or_
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 from ..database.models import book as book_models
 from ..database.base import get_db
 from ..schemas import user as user_schemas
 from ..schemas import book as book_schemas
+from ..database.models import check_in_out as check_in_out_models
 
 
 def get_all(
     current_user: Union[user_schemas.User, None], db: Session = Depends(get_db)
 ):
-    query = db.query(book_models.Book).order_by(book_models.Book.updated_at.desc())
+    query = (
+        db.query(
+            book_models.Book,
+            func.count(check_in_out_models.CheckInOut.id).label("current_borrow_count"),
+        )
+        .join(
+            check_in_out_models.CheckInOut,
+            and_(
+                check_in_out_models.CheckInOut.book_id == book_models.Book.id,
+                check_in_out_models.CheckInOut.returned == False,
+            ),
+            isouter=True,
+        )
+        .group_by(book_models.Book.id)
+        .order_by(book_models.Book.updated_at.desc())
+    )
 
     if current_user is None:
-        user_books: List[book_schemas.ShowBookPublic] = query.filter(
-            book_models.Book.public_shelf_quantity > 0
-        ).all()
-        return user_books
+        user_books = query.filter(book_models.Book.public_shelf_quantity > 0).all()
+
+        return [
+            {
+                **row._asdict()["Book"].__dict__,
+                "current_borrow_count": row._asdict()["current_borrow_count"],
+            }
+            for row in user_books
+        ]
 
     else:
-        librarian_and_proprietor_books: List[book_schemas.ShowBookPrivate] = query.all()
-        return librarian_and_proprietor_books
+        # NOTE: this is how to join and select
+        # librarian_and_proprietor_books: List[
+        #     book_schemas.ShowBookPrivate
+        # ] = query.options(
+        #     joinedload(
+        #         book_models.Book.check_in_outs,
+        #     ),
+        # ).all()
+        librarian_and_proprietor_books = query.all()
+        return [
+            {
+                **row._asdict()["Book"].__dict__,
+                "current_borrow_count": row._asdict()["current_borrow_count"],
+            }
+            for row in librarian_and_proprietor_books
+        ]
+
+
+def get_one(
+    id: str, current_user: Union[user_schemas.User, None], db: Session = Depends(get_db)
+):
+    query = (
+        db.query(
+            book_models.Book,
+            func.count(check_in_out_models.CheckInOut.id).label("current_borrow_count"),
+        )
+        .join(
+            check_in_out_models.CheckInOut,
+            check_in_out_models.CheckInOut.returned == False,
+            isouter=True,
+        )
+        .group_by(book_models.Book.id)
+        .order_by(book_models.Book.updated_at.desc())
+    )
+
+    if current_user is None:
+        book = query.filter(
+            and_(book_models.Book.public_shelf_quantity > 0, book_models.Book.id == id)
+        ).first()
+    else:
+        book = query.filter(book_models.Book.id == id).first()
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"book {id} not available"
+        )
+    return {
+        **book._asdict()["Book"].__dict__,
+        "current_borrow_count": book._asdict()["current_borrow_count"],
+    }
 
 
 def search(
@@ -79,6 +147,19 @@ def get_proprietor_book(id: str, proprietor_id: str, db: Session = Depends(get_d
             status_code=status.HTTP_404_NOT_FOUND, detail=f"book {id} not available"
         )
     return book
+
+
+def get_proprietor_books(
+    current_user: user_schemas.User, db: Session = Depends(get_db)
+):
+    query = (
+        db.query(book_models.Book)
+        .filter_by(proprietor_id=current_user.id)
+        .order_by(book_models.Book.updated_at.desc())
+    )
+
+    proprietor_books: List[book_schemas.ShowBookPrivate] = query.all()
+    return proprietor_books
 
 
 def update(id, update_data: dict, db: Session = Depends(get_db)):

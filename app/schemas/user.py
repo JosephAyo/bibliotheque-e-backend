@@ -10,6 +10,7 @@ class NoExtraBaseModel(BaseModel):
 
 
 class User(NoExtraBaseModel):
+    id: str
     first_name: str
     last_name: str
     email: EmailStr

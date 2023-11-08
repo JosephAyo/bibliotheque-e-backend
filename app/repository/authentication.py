@@ -88,6 +88,52 @@ async def get_current_manager_user(token: Annotated[str, Depends(oauth2_scheme)]
     return user
 
 
+async def get_current_proprietor_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    token_data = verify_token(token=token, credentials_exception=credentials_exception)
+    db = SessionLocal()
+    data = json.loads(token_data.replace("'", '"'))
+    user: UserViewProfileData = user_repository.get_one(data["id"], db)
+    db.close()
+    if user is None:
+        raise credentials_exception
+    is_proprietor_user = any(
+        (user_role_association.role.name == UserRole.PROPRIETOR.value)
+        for user_role_association in user.user_role_associations
+    )
+
+    if not is_proprietor_user:
+        raise credentials_exception
+    return user
+
+
+async def get_current_borrower_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    token_data = verify_token(token=token, credentials_exception=credentials_exception)
+    db = SessionLocal()
+    data = json.loads(token_data.replace("'", '"'))
+    user: UserViewProfileData = user_repository.get_one(data["id"], db)
+    db.close()
+    if user is None:
+        raise credentials_exception
+    is_borrower_user = any(
+        (user_role_association.role.name == UserRole.BORROWER.value)
+        for user_role_association in user.user_role_associations
+    )
+
+    if not is_borrower_user:
+        raise credentials_exception
+    return user
+
+
 async def get_current_user_or_none(
     token: Annotated[str, Depends(optional_oauth2_scheme)]
 ):

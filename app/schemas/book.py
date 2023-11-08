@@ -1,11 +1,14 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
 
 class NoExtraBaseModel(BaseModel):
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
+
+
+class IgnoreExtraBaseModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
 
 
 class CreateBook(NoExtraBaseModel):
@@ -23,29 +26,28 @@ class Book(CreateBook):
     updated_at: datetime
 
 
-class ShowBook(NoExtraBaseModel):
+class ShowBook(IgnoreExtraBaseModel):
     id: str
     title: str
     author_name: str
     description: str
     created_at: datetime
     updated_at: datetime
+    current_borrow_count: Optional[int] = 0
 
 
 class ShowBookPublic(ShowBook):
     public_shelf_quantity: int
 
 
-class ShowBookPublicResponse(NoExtraBaseModel):
+class ShowBookPublicResponse(IgnoreExtraBaseModel):
     message: str
     data: ShowBookPublic
 
 
-class ShowBooksPublicResponse(NoExtraBaseModel):
+class ShowBooksPublicResponse(IgnoreExtraBaseModel):
     message: str
     data: List[ShowBookPublic]
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class ShowBookPrivate(ShowBook):
@@ -55,16 +57,14 @@ class ShowBookPrivate(ShowBook):
     private_shelf_quantity: int
 
 
-class ShowBookPrivateResponse(NoExtraBaseModel):
+class ShowBookPrivateResponse(IgnoreExtraBaseModel):
     message: str
     data: ShowBookPrivate
 
 
-class ShowBooksPrivateResponse(NoExtraBaseModel):
+class ShowBooksPrivateResponse(IgnoreExtraBaseModel):
     message: str
     data: List[ShowBookPrivate]
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class EditBook(NoExtraBaseModel):
