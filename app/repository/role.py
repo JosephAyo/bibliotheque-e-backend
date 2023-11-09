@@ -1,5 +1,4 @@
 from fastapi import Depends, HTTPException, status
-from sqlalchemy import func
 
 from ..database.base import get_db
 from ..schemas import role as role_schemas
@@ -7,7 +6,7 @@ from ..database.models import role as role_models
 from ..database.models import (
     role_permission_association as role_permission_association_models,
 )
-
+from datetime import datetime
 from sqlalchemy.orm import Session
 
 
@@ -51,7 +50,7 @@ def update(id, update_data: dict, db: Session = Depends(get_db)):
             if (value is None) and (not role_models.Role.__table__.c[key].nullable):
                 continue
             setattr(role, key, value)
-    setattr(role, "updated_at", func.now())
+    setattr(role, "updated_at", datetime.utcnow())
     db.commit()
 
 

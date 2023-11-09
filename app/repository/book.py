@@ -7,6 +7,7 @@ from ..database.base import get_db
 from ..schemas import user as user_schemas
 from ..schemas import book as book_schemas
 from ..database.models import check_in_out as check_in_out_models
+from datetime import datetime
 
 
 def get_all(
@@ -174,7 +175,7 @@ def update(id, update_data: dict, db: Session = Depends(get_db)):
             if (value is None) and (not book_models.Book.__table__.c[key].nullable):
                 continue
             setattr(book, key, value)
-    setattr(book, "updated_at", func.now())
+    setattr(book, "updated_at", datetime.utcnow())
     db.commit()
 
 

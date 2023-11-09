@@ -113,7 +113,7 @@ def search_for_books_as_manager(
 
 @router.get(
     "/proprietor",
-    # response_model=book_schemas.ShowBooksPrivateResponse,
+    response_model=book_schemas.ShowBooksPrivateResponse,
     status_code=status.HTTP_200_OK,
 )
 def view_proprietor_book_list(

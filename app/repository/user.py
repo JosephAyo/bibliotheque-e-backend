@@ -1,6 +1,5 @@
-import datetime
+from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, status
-from sqlalchemy import func
 
 from ..database.base import get_db
 from ..schemas import user as user_schemas
@@ -63,7 +62,7 @@ def update(id, update_data: dict, db: Session = Depends(get_db)):
             if (value is None) and (not user_models.User.__table__.c[key].nullable):
                 continue
             setattr(user, key, value)
-    setattr(user, "updated_at", func.now())
+    setattr(user, "updated_at", datetime.utcnow())
     db.commit()
 
 
@@ -86,8 +85,8 @@ def save_auth_code(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"user {id} not available"
         )
     setattr(user, code_col_name, create_hash(code))
-    setattr(user, code_col_name + "_last_generated_at", func.now())
-    setattr(user, "updated_at", func.now())
+    setattr(user, code_col_name + "_last_generated_at", datetime.utcnow())
+    setattr(user, "updated_at", datetime.utcnow())
     db.commit()
 
 
@@ -102,11 +101,11 @@ def invalidate_auth_code(id: str, code_col_name: str, db: Session = Depends(get_
         user,
         code_col_name + "_last_generated_at",
         (
-            getattr(user, code_col_name + "_last_generated_at", datetime.datetime.utcnow())
-            - datetime.timedelta(days=40)
+            getattr(user, code_col_name + "_last_generated_at", datetime.utcnow())
+            - timedelta(days=40)
         ),
     )
-    setattr(user, "updated_at", func.now())
+    setattr(user, "updated_at", datetime.utcnow())
     db.commit()
 
 

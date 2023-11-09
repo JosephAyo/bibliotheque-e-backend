@@ -1,11 +1,11 @@
 from fastapi import Depends, HTTPException, status
-from sqlalchemy import func
 
 from ..database.base import get_db
 from ..schemas import permission as permission_schemas
 from ..database.models import permission as permission_models
 
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 
 def get_all(db: Session = Depends(get_db)):
@@ -48,7 +48,7 @@ def update(id, update_data: dict, db: Session = Depends(get_db)):
             if (value is None) and (not permission_models.Permission.__table__.c[key].nullable):
                 continue
             setattr(permission, key, value)
-    setattr(permission, "updated_at", func.now())
+    setattr(permission, "updated_at", datetime.utcnow())
     db.commit()
 
 
