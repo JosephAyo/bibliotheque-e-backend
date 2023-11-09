@@ -33,7 +33,7 @@ def get_all(
     if current_user is None:
         user_books = query.filter(book_models.Book.public_shelf_quantity > 0).all()
 
-        return [
+        books = [
             {
                 **row._asdict()["Book"].__dict__,
                 "current_borrow_count": row._asdict()["current_borrow_count"],
@@ -51,13 +51,14 @@ def get_all(
         #     ),
         # ).all()
         librarian_and_proprietor_books = query.all()
-        return [
+        books = [
             {
                 **row._asdict()["Book"].__dict__,
                 "current_borrow_count": row._asdict()["current_borrow_count"],
             }
             for row in librarian_and_proprietor_books
         ]
+    return books
 
 
 def get_one(
@@ -99,7 +100,16 @@ def search(
     db: Session = Depends(get_db),
 ):
     query = (
-        db.query(book_models.Book)
+        db.query(
+            book_models.Book,
+            func.count(check_in_out_models.CheckInOut.id).label("current_borrow_count"),
+        )
+        .join(
+            check_in_out_models.CheckInOut,
+            check_in_out_models.CheckInOut.returned == False,
+            isouter=True,
+        )
+        .group_by(book_models.Book.id)
         .order_by(book_models.Book.updated_at.desc())
         .filter(
             or_(
@@ -111,14 +121,25 @@ def search(
     )
 
     if current_user is None:
-        user_books: List[book_schemas.ShowBookPublic] = query.filter(
-            book_models.Book.public_shelf_quantity > 0
-        ).all()
-        return user_books
+        user_books = query.filter(book_models.Book.public_shelf_quantity > 0).all()
+        books = [
+            {
+                **row._asdict()["Book"].__dict__,
+                "current_borrow_count": row._asdict()["current_borrow_count"],
+            }
+            for row in user_books
+        ]
 
     else:
-        librarian_and_proprietor_books: List[book_schemas.ShowBookPrivate] = query.all()
-        return librarian_and_proprietor_books
+        librarian_and_proprietor_books = query.all()
+        books = [
+            {
+                **row._asdict()["Book"].__dict__,
+                "current_borrow_count": row._asdict()["current_borrow_count"],
+            }
+            for row in librarian_and_proprietor_books
+        ]
+    return books
 
 
 def create(
@@ -141,26 +162,60 @@ def create(
 
 def get_proprietor_book(id: str, proprietor_id: str, db: Session = Depends(get_db)):
     book = (
-        db.query(book_models.Book).filter_by(id=id, proprietor_id=proprietor_id).first()
+        db.query(
+            book_models.Book,
+            func.count(check_in_out_models.CheckInOut.id).label("current_borrow_count"),
+        )
+        .join(
+            check_in_out_models.CheckInOut,
+            check_in_out_models.CheckInOut.returned == False,
+            isouter=True,
+        )
+        .group_by(book_models.Book.id)
+        .order_by(book_models.Book.updated_at.desc())
+        .filter_by(id=id, proprietor_id=proprietor_id)
+        .first()
     )
     if not book:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"book {id} not available"
         )
-    return book
+    return {
+        **book._asdict()["Book"].__dict__,
+        "current_borrow_count": book._asdict()["current_borrow_count"],
+    }
 
 
 def get_proprietor_books(
     current_user: user_schemas.User, db: Session = Depends(get_db)
 ):
     query = (
-        db.query(book_models.Book)
+        db.query(
+            book_models.Book,
+            func.count(check_in_out_models.CheckInOut.id).label("current_borrow_count"),
+        )
+        .join(
+            check_in_out_models.CheckInOut,
+            and_(
+                check_in_out_models.CheckInOut.book_id == book_models.Book.id,
+                check_in_out_models.CheckInOut.returned == False,
+            ),
+            isouter=True,
+        )
+        .group_by(book_models.Book.id)
         .filter_by(proprietor_id=current_user.id)
         .order_by(book_models.Book.updated_at.desc())
     )
 
-    proprietor_books: List[book_schemas.ShowBookPrivate] = query.all()
-    return proprietor_books
+    proprietor_books = query.all()
+    books = [
+        {
+            **row._asdict()["Book"].__dict__,
+            "current_borrow_count": row._asdict()["current_borrow_count"],
+        }
+        for row in proprietor_books
+    ]
+    return books
 
 
 def update(id, update_data: dict, db: Session = Depends(get_db)):

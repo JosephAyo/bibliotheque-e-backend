@@ -45,7 +45,7 @@ class ShowBookPublicWithBorrowCount(ShowBookPublic):
 
 class ShowBookPublicResponse(IgnoreExtraBaseModel):
     message: str
-    data: ShowBookPublic
+    data: ShowBookPublicWithBorrowCount
 
 
 class ShowBooksPublicResponse(IgnoreExtraBaseModel):
@@ -66,12 +66,12 @@ class ShowBookPrivateWithBorrowCount(ShowBookPrivate):
 
 class ShowBookPrivateResponse(IgnoreExtraBaseModel):
     message: str
-    data: ShowBookPrivate
+    data: ShowBookPrivateWithBorrowCount
 
 
 class ShowBooksPrivateResponse(IgnoreExtraBaseModel):
     message: str
-    data: List[ShowBookPrivate]
+    data: List[ShowBookPrivateWithBorrowCount]
 
 
 class EditBook(NoExtraBaseModel):
