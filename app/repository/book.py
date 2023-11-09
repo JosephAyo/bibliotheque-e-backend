@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Union
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
@@ -10,10 +10,8 @@ from ..database.models import check_in_out as check_in_out_models
 from datetime import datetime
 
 
-def get_all(
-    current_user: Union[user_schemas.User, None], db: Session = Depends(get_db)
-):
-    query = (
+def get_book_query_base(db: Session = Depends(get_db)):
+    return (
         db.query(
             book_models.Book,
             func.count(check_in_out_models.CheckInOut.id).label("current_borrow_count"),
@@ -27,8 +25,13 @@ def get_all(
             isouter=True,
         )
         .group_by(book_models.Book.id)
-        .order_by(book_models.Book.updated_at.desc())
     )
+
+
+def get_all(
+    current_user: Union[user_schemas.User, None], db: Session = Depends(get_db)
+):
+    query = get_book_query_base(db).order_by(book_models.Book.updated_at.desc())
 
     if current_user is None:
         user_books = query.filter(book_models.Book.public_shelf_quantity > 0).all()
@@ -64,19 +67,7 @@ def get_all(
 def get_one(
     id: str, current_user: Union[user_schemas.User, None], db: Session = Depends(get_db)
 ):
-    query = (
-        db.query(
-            book_models.Book,
-            func.count(check_in_out_models.CheckInOut.id).label("current_borrow_count"),
-        )
-        .join(
-            check_in_out_models.CheckInOut,
-            check_in_out_models.CheckInOut.returned == False,
-            isouter=True,
-        )
-        .group_by(book_models.Book.id)
-        .order_by(book_models.Book.updated_at.desc())
-    )
+    query = get_book_query_base(db)
 
     if current_user is None:
         book = query.filter(
@@ -100,16 +91,7 @@ def search(
     db: Session = Depends(get_db),
 ):
     query = (
-        db.query(
-            book_models.Book,
-            func.count(check_in_out_models.CheckInOut.id).label("current_borrow_count"),
-        )
-        .join(
-            check_in_out_models.CheckInOut,
-            check_in_out_models.CheckInOut.returned == False,
-            isouter=True,
-        )
-        .group_by(book_models.Book.id)
+        get_book_query_base(db)
         .order_by(book_models.Book.updated_at.desc())
         .filter(
             or_(
@@ -162,16 +144,7 @@ def create(
 
 def get_proprietor_book(id: str, proprietor_id: str, db: Session = Depends(get_db)):
     book = (
-        db.query(
-            book_models.Book,
-            func.count(check_in_out_models.CheckInOut.id).label("current_borrow_count"),
-        )
-        .join(
-            check_in_out_models.CheckInOut,
-            check_in_out_models.CheckInOut.returned == False,
-            isouter=True,
-        )
-        .group_by(book_models.Book.id)
+        get_book_query_base(db)
         .order_by(book_models.Book.updated_at.desc())
         .filter_by(id=id, proprietor_id=proprietor_id)
         .first()
@@ -190,19 +163,7 @@ def get_proprietor_books(
     current_user: user_schemas.User, db: Session = Depends(get_db)
 ):
     query = (
-        db.query(
-            book_models.Book,
-            func.count(check_in_out_models.CheckInOut.id).label("current_borrow_count"),
-        )
-        .join(
-            check_in_out_models.CheckInOut,
-            and_(
-                check_in_out_models.CheckInOut.book_id == book_models.Book.id,
-                check_in_out_models.CheckInOut.returned == False,
-            ),
-            isouter=True,
-        )
-        .group_by(book_models.Book.id)
+        get_book_query_base(db)
         .filter_by(proprietor_id=current_user.id)
         .order_by(book_models.Book.updated_at.desc())
     )
