@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated, List, Optional
 from annotated_types import Ge
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, root_validator
 
 
 class NoExtraBaseModel(BaseModel):
@@ -84,5 +84,15 @@ class EditBookDetails(NoExtraBaseModel):
 
 class EditBookQuantity(NoExtraBaseModel):
     id: str
-    private_shelf_quantity: Annotated[Optional[int], Ge(0)] = None
     public_shelf_quantity: Annotated[Optional[int], Ge(0)] = None
+    private_shelf_quantity: Annotated[Optional[int], Ge(0)] = None
+
+    @root_validator(pre=True)
+    def check_public_shelf_quantity_or_private_shelf_quantity(cls, values):
+        if (values.get("public_shelf_quantity") is None) and (
+            values.get("private_shelf_quantity") is None
+        ):
+            raise ValueError(
+                "either public_shelf_quantity or private_shelf_quantity is required"
+            )
+        return values

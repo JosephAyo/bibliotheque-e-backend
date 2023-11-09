@@ -47,7 +47,7 @@ def view_books_as_manager(
 def create_book(
     req_body: book_schemas.CreateBook,
     db: Session = Depends(get_db),
-    current_user=Depends(authentication_repository.get_current_manager_user),
+    current_user=Depends(authentication_repository.get_current_proprietor_user),
 ):
     created_book = book_repository.create(
         req_body,
@@ -58,16 +58,16 @@ def create_book(
 
 
 @router.patch("/", response_model=generic_schemas.NoDataResponse)
-def edit_book(
-    req_body: book_schemas.EditBook,
+def edit_book_details(
+    req_body: book_schemas.EditBookDetails,
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_manager_user),
 ):
     id = req_body.id
-    book_repository.get_proprietor_book(id, current_user.id, db)
+    book_repository.get_one(id, current_user.id, db)
     delattr(req_body, "id")
     book_repository.update(id, dict(req_body), db)
-    return {"message": "success", "detail": "book updated"}
+    return {"message": "success", "detail": "book details updated"}
 
 
 @router.delete("/{id}", response_model=generic_schemas.NoDataResponse)
@@ -76,7 +76,12 @@ def delete_book(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_manager_user),
 ):
-    book_repository.get_proprietor_book(id, current_user.id, db)
+    book = book_repository.get_one(id, current_user, db)
+    if book["current_borrow_count"] > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"book currently has {book['current_borrow_count']} borrowed cop{'ies' if book['current_borrow_count'] > 1 else 'y'}",
+        )
     book_repository.destroy(id, db)
     return {"message": "success", "detail": "book deleted"}
 
@@ -111,18 +116,46 @@ def search_for_books_as_manager(
     return data
 
 
-@router.get(
-    "/proprietor",
-    response_model=book_schemas.ShowBooksPrivateResponse,
-    status_code=status.HTTP_200_OK,
-)
-def view_proprietor_book_list(
+@router.patch("/quantity", response_model=generic_schemas.NoDataResponse)
+def edit_book_quantity(
+    req_body: book_schemas.EditBookQuantity,
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_proprietor_user),
 ):
-    books = book_repository.get_proprietor_books(current_user, db)
-    data = {"message": "success", "data": books}
-    return data
+    id = req_body.id
+    book = book_repository.get_one(id, current_user, db)
+
+    if (
+        req_body.public_shelf_quantity is not None
+        and req_body.public_shelf_quantity < book["current_borrow_count"]
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"book currently has {book['current_borrow_count']} borrowed cop{'ies' if book['current_borrow_count'] > 1 else 'y'}",
+        )
+    delattr(req_body, "id")
+    total_quantity = book["total_quantity"]
+    if (
+        req_body.public_shelf_quantity is not None
+        and req_body.private_shelf_quantity is not None
+    ):
+        total_quantity = (
+            req_body.public_shelf_quantity + req_body.private_shelf_quantity
+        )
+    elif (
+        req_body.public_shelf_quantity is not None
+        and req_body.private_shelf_quantity is None
+    ):
+        total_quantity = book["private_shelf_quantity"] + req_body.public_shelf_quantity
+    elif (
+        req_body.private_shelf_quantity is not None
+        and req_body.public_shelf_quantity is None
+    ):
+        total_quantity = book["public_shelf_quantity"] + req_body.private_shelf_quantity
+    book_repository.update(
+        id, dict(**{**dict(req_body), "total_quantity": total_quantity}), db
+    )
+    return {"message": "success", "detail": "book quantity updated"}
 
 
 @router.get(
@@ -149,9 +182,7 @@ def borrow_book(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_borrower_user),
 ):
-    check_outs = check_in_out_repository.get_all_check_outs_by_user(
-        current_user, db
-    )
+    check_outs = check_in_out_repository.get_all_check_outs_by_user(current_user, db)
     num_of_check_outs = len(check_outs)
     if num_of_check_outs > 0:
         raise HTTPException(
