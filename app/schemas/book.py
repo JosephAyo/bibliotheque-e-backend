@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Annotated, List, Optional
+from annotated_types import Ge
 from pydantic import BaseModel, ConfigDict
 
 
@@ -15,8 +16,8 @@ class CreateBook(NoExtraBaseModel):
     title: str
     author_name: str
     description: str
-    public_shelf_quantity: int
-    private_shelf_quantity: int
+    public_shelf_quantity: Annotated[int, Ge(0)]
+    private_shelf_quantity: Annotated[int, Ge(1)]
 
 
 class Book(CreateBook):
@@ -74,9 +75,14 @@ class ShowBooksPrivateResponse(IgnoreExtraBaseModel):
     data: List[ShowBookPrivateWithBorrowCount]
 
 
-class EditBook(NoExtraBaseModel):
+class EditBookDetails(NoExtraBaseModel):
     id: str
-    title: str
-    author_name: str
-    description: str
-    private_shelf_quantity: int
+    title: Optional[str] = None
+    author_name: Optional[str] = None
+    description: Optional[str] = None
+
+
+class EditBookQuantity(NoExtraBaseModel):
+    id: str
+    private_shelf_quantity: Annotated[Optional[int], Ge(0)] = None
+    public_shelf_quantity: Annotated[Optional[int], Ge(0)] = None
