@@ -18,12 +18,28 @@ def get_all_by_user(current_user: user_schemas.User, db: Session = Depends(get_d
     )
 
 
+def get_all_check_outs_by_user(
+    current_user: user_schemas.User, db: Session = Depends(get_db)
+):
+    return (
+        db.query(check_in_out_models.CheckInOut)
+        .filter(
+            and_(
+                check_in_out_models.CheckInOut.borrower_id == current_user.id,
+                check_in_out_models.CheckInOut.returned == False,
+            )
+        )
+        .order_by(check_in_out_models.CheckInOut.updated_at.desc())
+        .all()
+    )
+
+
 def get_one_by_user(
     id: str, current_user: user_schemas.User, db: Session = Depends(get_db)
 ):
     return (
         db.query(check_in_out_models.CheckInOut)
-        .filter_by(
+        .filter(
             and_(
                 check_in_out_models.CheckInOut.id == id,
                 check_in_out_models.CheckInOut.borrower_id == current_user.id,

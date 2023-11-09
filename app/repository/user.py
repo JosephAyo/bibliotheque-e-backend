@@ -15,9 +15,11 @@ def get_all(db: Session = Depends(get_db)):
     return users
 
 
-def get_one(id, db: Session = Depends(get_db)):
+def get_one(
+    id, db: Session = Depends(get_db), ignore_not_found_exception: bool = False
+):
     user = db.query(user_models.User).filter(user_models.User.id == id).first()
-    if not user:
+    if not user and not ignore_not_found_exception:
         # response.status_code = status.HTTP_404_NOT_FOUND
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"user {id} not available"

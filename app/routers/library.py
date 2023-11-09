@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from ..schemas import book as book_schemas
 from ..schemas import generic as generic_schemas
 from ..repository import book as book_repository
@@ -149,7 +149,21 @@ def borrow_book(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_borrower_user),
 ):
-    book_repository.get_one(req_body.book_id, None, db)
+    check_outs = check_in_out_repository.get_all_check_outs_by_user(
+        current_user, db
+    )
+    num_of_check_outs = len(check_outs)
+    if num_of_check_outs > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"you have {num_of_check_outs} book{'s' if num_of_check_outs > 1 else ''} still pending return",
+        )
+    book = book_repository.get_one(req_body.book_id, None, db)
+    if book["current_borrow_count"] >= book["public_shelf_quantity"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"book is not available for borrowing",
+        )
     check_out_book = check_in_out_repository.check_out_book(
         req_body, current_user.id, db
     )

@@ -33,11 +33,14 @@ class ShowBook(IgnoreExtraBaseModel):
     description: str
     created_at: datetime
     updated_at: datetime
-    current_borrow_count: Optional[int] = 0
 
 
 class ShowBookPublic(ShowBook):
     public_shelf_quantity: int
+
+
+class ShowBookPublicWithBorrowCount(ShowBookPublic):
+    current_borrow_count: Optional[int] = 0
 
 
 class ShowBookPublicResponse(IgnoreExtraBaseModel):
@@ -47,7 +50,7 @@ class ShowBookPublicResponse(IgnoreExtraBaseModel):
 
 class ShowBooksPublicResponse(IgnoreExtraBaseModel):
     message: str
-    data: List[ShowBookPublic]
+    data: List[ShowBookPublicWithBorrowCount]
 
 
 class ShowBookPrivate(ShowBook):
@@ -55,6 +58,10 @@ class ShowBookPrivate(ShowBook):
     total_quantity: int
     public_shelf_quantity: int
     private_shelf_quantity: int
+
+
+class ShowBookPrivateWithBorrowCount(ShowBookPrivate):
+    current_borrow_count: Optional[int] = 0
 
 
 class ShowBookPrivateResponse(IgnoreExtraBaseModel):

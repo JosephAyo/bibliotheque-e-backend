@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel
 
-from .book import Book
+from .book import ShowBookPublic
 
 
 class NoExtraBaseModel(BaseModel):
@@ -25,7 +25,7 @@ class ShowCheckInOut(CreateCheckInOut):
     fine_paid: Optional[float] = 0
     created_at: datetime
     updated_at: datetime
-    book: Book
+    book: ShowBookPublic
 
 
 class CheckInOutResponse(NoExtraBaseModel):
