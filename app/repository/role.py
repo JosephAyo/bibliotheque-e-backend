@@ -1,4 +1,5 @@
 from fastapi import Depends, HTTPException, status
+from sqlalchemy import func
 
 from ..database.base import get_db
 from ..schemas import role as role_schemas
@@ -13,6 +14,25 @@ from sqlalchemy.orm import Session
 def get_all(db: Session = Depends(get_db)):
     roles = db.query(role_models.Role).all()
     return roles
+
+
+def get_all_by_librarian(db: Session = Depends(get_db)):
+    roles = db.query(
+        role_models.Role,
+    ).all()
+    return roles
+
+
+def get_one_by_id(
+    id, db: Session = Depends(get_db), ignore_not_found_exception: bool = False
+):
+    role = db.query(role_models.Role).get(id)
+    if not role and not ignore_not_found_exception:
+        # response.status_code = status.HTTP_404_NOT_FOUND
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"role {id} not available"
+        )
+    return role
 
 
 def get_one_by_name(

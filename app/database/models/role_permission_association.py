@@ -2,6 +2,7 @@ from sqlalchemy import DateTime, Boolean, Column, ForeignKey, Text
 from ..base import Base
 import uuid
 import datetime
+from sqlalchemy.orm import relationship
 
 
 class RolePermissionAssociation(Base):
@@ -11,7 +12,9 @@ class RolePermissionAssociation(Base):
     )
     role_id = Column(Text(length=36), ForeignKey("role.id"), nullable=False)
     permission_id = Column(Text(length=36), ForeignKey("permission.id"), nullable=False)
-    created_at =  Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
-    updated_at =  Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     is_deleted = Column(Boolean, default=False)
-    deleted_at =  Column(DateTime)
+    deleted_at = Column(DateTime)
+
+    permission = relationship("Permission", lazy=False)

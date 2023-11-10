@@ -111,6 +111,22 @@ def invalidate_auth_code(id: str, code_col_name: str, db: Session = Depends(get_
     db.commit()
 
 
+def get_user_role_association(
+    id: str, db: Session = Depends(get_db), ignore_not_found_exception=False
+):
+    user_role_association = db.query(
+        user_role_association_models.UserRoleAssociation
+    ).get(id)
+    if not user_role_association and not ignore_not_found_exception:
+        # response.status_code = status.HTTP_404_NOT_FOUND
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"user role association {id} not available",
+        )
+
+    return user_role_association
+
+
 def create_user_role_association(
     data: user_schemas.CreateUserRoleAssociation, db: Session = Depends(get_db)
 ):

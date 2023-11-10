@@ -10,6 +10,7 @@ from ..repository import user as user_repository
 from ..repository import authentication as authentication_repository
 from ..schemas import user as user_schemas
 from ..schemas import generic as generic_schemas
+from ..schemas import role as role_schemas
 from ..database.base import get_db
 from ..repository import role as role_repository
 
@@ -233,3 +234,37 @@ def edit_profile(
     update_data = {"first_name": req_body.first_name, "last_name": req_body.last_name}
     user_repository.update(current_user.id, update_data, db)
     return {"message": "success", "detail": "profile updated"}
+
+
+@router.get(
+    "/roles",
+    response_model=role_schemas.ViewRolesResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def view_roles(
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_librarian_user),
+):
+    roles = role_repository.get_all_by_librarian(db)
+    return {"message": "success", "data": roles}
+
+
+@router.post(
+    "/manager/add",
+    response_model=generic_schemas.NoDataResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_manager_user(
+    req_body: user_schemas.AddManagerUser,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_librarian_user),
+):
+    user = user_repository.get_one_by_email(req_body.email, db)
+    user_role = role_repository.get_one_by_id(req_body.role_id, db)
+    user_repository.create_user_role_association(
+        user_schemas.CreateUserRoleAssociation(
+            **{"user_id": user.id, "role_id": user_role.id}
+        ),
+        db,
+    )
+    return {"message": "success", "detail": "manager user added"}

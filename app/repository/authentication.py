@@ -97,7 +97,7 @@ async def get_current_proprietor_user(token: Annotated[str, Depends(oauth2_schem
     token_data = verify_token(token=token, credentials_exception=credentials_exception)
     db = SessionLocal()
     data = json.loads(token_data.replace("'", '"'))
-    user: UserViewProfileData = user_repository.get_one(data["id"], db)
+    user: UserViewProfileData = user_repository.get_one(data["id"], db, True)
     db.close()
     if user is None:
         raise credentials_exception
@@ -107,6 +107,29 @@ async def get_current_proprietor_user(token: Annotated[str, Depends(oauth2_schem
     )
 
     if not is_proprietor_user:
+        raise credentials_exception
+    return user
+
+
+async def get_current_librarian_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    token_data = verify_token(token=token, credentials_exception=credentials_exception)
+    db = SessionLocal()
+    data = json.loads(token_data.replace("'", '"'))
+    user: UserViewProfileData = user_repository.get_one(data["id"], db, True)
+    db.close()
+    if user is None:
+        raise credentials_exception
+    is_librarian_user = any(
+        (user_role_association.role.name == UserRole.LIBRARIAN.value)
+        for user_role_association in user.user_role_associations
+    )
+
+    if not is_librarian_user:
         raise credentials_exception
     return user
 

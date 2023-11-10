@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
+
 from .role import Role
 
 
@@ -99,3 +100,8 @@ class UserViewProfile(NoExtraBaseModel):
 class UserEditProfile(NoExtraBaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+
+
+class AddManagerUser(NoExtraBaseModel):
+    email: str
+    role_id: str

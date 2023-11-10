@@ -12,7 +12,7 @@ class CreatePermission(NoExtraBaseModel):
     description: str
 
 
-class Permission(CreatePermission):
+class Permission(BaseModel):
     id: str
     name: str
     description: str
