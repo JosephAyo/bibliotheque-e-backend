@@ -44,12 +44,12 @@ class RolePermissionAssociation(BaseModel):
 
 
 class ShowRoleWithPermissions(Role):
-    role_permission_associations: List[RolePermissionAssociation] = []
+    role_permission_associations: List[RolePermissionAssociation]
 
 
 class ViewRolesResponse(BaseModel):
     message: str
-    data: List[ShowRoleWithPermissions] = []
+    data: List[ShowRoleWithPermissions]
 
 
 class UserSwitchRole(NoExtraBaseModel):
