@@ -261,6 +261,15 @@ def add_manager_user(
 ):
     user = user_repository.get_one_by_email(req_body.email, db)
     user_role = role_repository.get_one_by_id(req_body.role_id, db)
+    user_already_has_role = any(
+        (user_role_association.role.id == user_role.id)
+        for user_role_association in user.user_role_associations
+    )
+    if user_already_has_role:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"user is already a {user_role.name}",
+        )
     user_repository.create_user_role_association(
         user_schemas.CreateUserRoleAssociation(
             **{"user_id": user.id, "role_id": user_role.id}
