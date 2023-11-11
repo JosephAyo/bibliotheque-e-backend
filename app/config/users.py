@@ -6,18 +6,24 @@ from ..database.base import SessionLocal
 from ..repository import user as user_repository
 from ..repository import role as role_repository
 from ..repository import permission as permission_repository
+import os
+from dotenv import load_dotenv
 
-default_proprietor_data = {
-    "first_name": "proprietor",
-    "last_name": "guy",
-    "email": "proprietor@admin.com",
-    "password": "proprietor",
-}
+load_dotenv(".env")
+
+
+class Envs:
+    DEFAULT_USER_EMAIL = os.getenv("DEFAULT_USER_EMAIL")
+    DEFAULT_USER_FIRSTNAME = os.getenv("DEFAULT_USER_FIRSTNAME")
+    DEFAULT_USER_LASTNAME = os.getenv("DEFAULT_USER_LASTNAME")
+    DEFAULT_USER_PASSWORD = os.getenv("DEFAULT_USER_PASSWORD")
+
+
 default_librarian_data = {
-    "first_name": "librarian",
-    "last_name": "guy",
-    "email": "librarian@admin.com",
-    "password": "librarian",
+    "first_name": Envs.DEFAULT_USER_FIRSTNAME,
+    "last_name": Envs.DEFAULT_USER_LASTNAME,
+    "email": Envs.DEFAULT_USER_EMAIL,
+    "password": Envs.DEFAULT_USER_PASSWORD,
 }
 
 
@@ -55,6 +61,8 @@ def create_default_roles_and_permissions():
 
 
 def create_default_users():
+    if None in default_librarian_data.values() or "" in default_librarian_data.values():
+        return
     librarian_user = user_repository.get_one_by_email(
         default_librarian_data["email"], SessionLocal(), True
     )
@@ -70,25 +78,6 @@ def create_default_users():
             user_repository.create_user_role_association(
                 user_schemas.CreateUserRoleAssociation(
                     **{"user_id": librarian_user.id, "role_id": user_role.id}
-                ),
-                SessionLocal(),
-            )
-
-    proprietor_user = user_repository.get_one_by_email(
-        default_proprietor_data["email"], SessionLocal(), True
-    )
-    if proprietor_user is None:
-        proprietor_user = user_repository.create(
-            user_schemas.UserSignUp(**default_proprietor_data),
-            SessionLocal(),
-        )
-        user_role = role_repository.get_one_by_name(
-            UserRole.PROPRIETOR.value, SessionLocal(), True
-        )
-        if user_role is not None:
-            user_repository.create_user_role_association(
-                user_schemas.CreateUserRoleAssociation(
-                    **{"user_id": proprietor_user.id, "role_id": user_role.id}
                 ),
                 SessionLocal(),
             )
