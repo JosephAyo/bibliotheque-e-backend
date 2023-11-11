@@ -3,3 +3,4 @@ bibliotheque-e-env
 .DS_Store
 *.db
 *.todo
+.env

@@ -20,8 +20,6 @@ from .database.models import notification as notification_model
 from .database.models import faq as faq_model
 from .database.models import app_log as app_log_model
 
-# app = FastAPI()
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

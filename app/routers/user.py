@@ -1,7 +1,9 @@
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.database.enums import UserRole
+from ..database.enums import UserRole
+from ..helpers.email_templates import get_reset_password_email, get_verification_email
+from ..helpers.send_email import send_email_background
 
 from ..repository.hashing import create_hash, verify_hash
 
@@ -22,7 +24,11 @@ router = APIRouter(prefix="/users", tags=["Users"])
     response_model=user_schemas.ShowUser,
     status_code=status.HTTP_201_CREATED,
 )
-def create_user(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)):
+def create_user(
+    req_body: user_schemas.UserSignUp,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     db_user = user_repository.get_one_by_email(req_body.email, db, True)
     if db_user:
         raise HTTPException(
@@ -48,7 +54,12 @@ def create_user(req_body: user_schemas.UserSignUp, db: Session = Depends(get_db)
         verification_code,
         db,
     )
-    # send verification code to email
+    send_email_background(
+        background_tasks,
+        "Welcome",
+        f"{req_body.email}",
+        get_verification_email(created_user.first_name, verification_code),
+    )
     return created_user
 
 
@@ -94,7 +105,9 @@ def verify_email(req_body: user_schemas.UserVerifyEmail, db: Session = Depends(g
     "/resend-verification/email", response_model=generic_schemas.NoDataResponse
 )
 def resend_verification_email(
-    req_body: user_schemas.UserResendVerificationEmail, db: Session = Depends(get_db)
+    req_body: user_schemas.UserResendVerificationEmail,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
 ):
     existing_user = user_repository.get_one_by_email(req_body.email, db)
     verification_code = authentication_repository.generate_auth_code()
@@ -104,7 +117,13 @@ def resend_verification_email(
         verification_code,
         db,
     )
-    # send verification code to email
+
+    send_email_background(
+        background_tasks,
+        "Email verification",
+        f"{req_body.email}",
+        get_verification_email(existing_user.first_name, verification_code),
+    )
     return {"message": "success", "detail": "verification email sent"}
 
 
@@ -130,7 +149,9 @@ def login(
 
 @router.patch("/forgot-password", response_model=generic_schemas.NoDataResponse)
 def forgot_password(
-    req_body: user_schemas.UserForgotPassword, db: Session = Depends(get_db)
+    req_body: user_schemas.UserForgotPassword,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
 ):
     existing_user = user_repository.get_one_by_email(req_body.email, db)
     reset_password_code = authentication_repository.generate_auth_code()
@@ -140,7 +161,13 @@ def forgot_password(
         reset_password_code,
         db,
     )
-    # send verification code to email
+
+    send_email_background(
+        background_tasks,
+        "Reset password",
+        f"{req_body.email}",
+        get_reset_password_email(existing_user.first_name, reset_password_code),
+    )
     return {"message": "success", "detail": "reset password code sent"}
 
 

@@ -6,3 +6,5 @@ bcrypt
 python-jose[cryptography]
 python-multipart
 pydantic
+fastapi-mail
+python-dotenv
