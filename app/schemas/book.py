@@ -17,7 +17,7 @@ class CreateBook(NoExtraBaseModel):
     author_name: str
     description: str
     public_shelf_quantity: Annotated[int, Ge(0)]
-    private_shelf_quantity: Annotated[int, Ge(1)]
+    private_shelf_quantity: Annotated[int, Ge(0)]
 
 
 class Book(CreateBook):
