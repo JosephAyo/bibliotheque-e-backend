@@ -19,6 +19,7 @@ from .database.models import check_in_out as check_in_out_model
 from .database.models import notification as notification_model
 from .database.models import faq as faq_model
 from .database.models import app_log as app_log_model
+from fastapi.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager
@@ -44,6 +45,16 @@ notification_model.Base.metadata.create_all(engine)
 faq_model.Base.metadata.create_all(engine)
 app_log_model.Base.metadata.create_all(engine)
 
+
+origins = ["http://localhost:3000"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(library.router)
 app.include_router(user.router)
