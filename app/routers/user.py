@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from ..database.enums import UserRole
 from ..helpers.email_templates import get_reset_password_email, get_verification_email
@@ -151,8 +151,11 @@ def login(
 def forgot_password(
     req_body: user_schemas.UserForgotPassword,
     background_tasks: BackgroundTasks,
+    request: Request,
     db: Session = Depends(get_db),
 ):
+    referer = request.headers.get("referer")
+    print(f"referer:>>{referer}")
     existing_user = user_repository.get_one_by_email(req_body.email, db)
     reset_password_code = authentication_repository.generate_auth_code()
     user_repository.save_auth_code(

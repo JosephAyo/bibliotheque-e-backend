@@ -52,6 +52,7 @@ app_log_model.Base.metadata.create_all(engine)
 
 origins = os.getenv("ORIGINS", "").split(",")
 
+print(f"origins:>>{origins}")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
