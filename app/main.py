@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
@@ -20,6 +21,9 @@ from .database.models import notification as notification_model
 from .database.models import faq as faq_model
 from .database.models import app_log as app_log_model
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv(".env")
 
 
 @asynccontextmanager
@@ -46,7 +50,7 @@ faq_model.Base.metadata.create_all(engine)
 app_log_model.Base.metadata.create_all(engine)
 
 
-origins = ["http://localhost:3000"]
+origins = os.getenv("ORIGINS", "").split(",")
 
 app.add_middleware(
     CORSMiddleware,
