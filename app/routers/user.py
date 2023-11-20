@@ -245,6 +245,7 @@ def change_password(
 @router.get(
     "/profile",
     response_model=user_schemas.UserViewProfile,
+    status_code=status.HTTP_200_OK,
 )
 def view_profile(
     current_user=Depends(authentication_repository.get_current_user),
@@ -266,7 +267,7 @@ def edit_profile(
 @router.get(
     "/roles",
     response_model=role_schemas.ViewRolesResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
 )
 def view_roles(
     db: Session = Depends(get_db),
@@ -304,3 +305,16 @@ def add_manager_user(
         db,
     )
     return {"message": "success", "detail": "manager user added"}
+
+
+@router.get(
+    "/all",
+    response_model=user_schemas.ViewAllUsers,
+    status_code=status.HTTP_200_OK,
+)
+def view_all_users(
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_librarian_user),
+):
+    users = user_repository.get_all(db)
+    return {"message": "success", "data": users}

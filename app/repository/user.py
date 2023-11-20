@@ -11,7 +11,9 @@ from .hashing import create_hash
 
 
 def get_all(db: Session = Depends(get_db)):
-    users = db.query(user_models.User).all()
+    users = (
+        db.query(user_models.User).order_by(user_models.User.updated_at.desc()).all()
+    )
     return users
 
 

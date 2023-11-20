@@ -29,6 +29,11 @@ class ShowUser(NoExtraBaseModel):
     is_verified: bool
 
 
+class AdminShowUser(ShowUser):
+    created_at: datetime
+    updated_at: datetime
+
+
 class UserSignUp(NoExtraBaseModel):
     first_name: str
     last_name: str
@@ -92,6 +97,10 @@ class UserViewProfileData(ShowUser):
     user_role_associations: List[ShowUserRoleAssociation] = []
 
 
+class AdminUserViewProfileData(AdminShowUser):
+    user_role_associations: List[ShowUserRoleAssociation] = []
+
+
 class UserViewProfile(NoExtraBaseModel):
     message: str
     data: UserViewProfileData
@@ -105,3 +114,8 @@ class UserEditProfile(NoExtraBaseModel):
 class AddManagerUser(NoExtraBaseModel):
     email: str
     role_id: str
+
+
+class ViewAllUsers(NoExtraBaseModel):
+    message: str
+    data: List[AdminUserViewProfileData] = []

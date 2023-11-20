@@ -1,5 +1,4 @@
 from fastapi import Depends, HTTPException, status
-from sqlalchemy import func
 
 from ..database.base import get_db
 from ..schemas import role as role_schemas
