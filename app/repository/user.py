@@ -140,3 +140,15 @@ def create_user_role_association(
     db.commit()
     db.refresh(new_user_role_association)
     return new_user_role_association
+
+
+def destroy_user_role_association(id, db: Session = Depends(get_db)):
+    role = db.query(user_role_association_models.UserRoleAssociation).filter(
+        user_role_association_models.UserRoleAssociation.id == id
+    )
+    if not role.first():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"role {id} not available"
+        )
+    role.delete(synchronize_session=False)
+    db.commit()

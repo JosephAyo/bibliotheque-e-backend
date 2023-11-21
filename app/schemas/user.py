@@ -111,9 +111,9 @@ class UserEditProfile(NoExtraBaseModel):
     last_name: Optional[str] = None
 
 
-class AddManagerUser(NoExtraBaseModel):
+class AddOrRemoveManagerUser(NoExtraBaseModel):
     email: str
-    role_id: str
+    role_ids: List[str]
 
 
 class ViewAllUsers(NoExtraBaseModel):

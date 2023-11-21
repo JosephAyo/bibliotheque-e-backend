@@ -278,33 +278,51 @@ def view_roles(
 
 
 @router.post(
-    "/manager/add",
+    "/manager",
     response_model=generic_schemas.NoDataResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def add_manager_user(
-    req_body: user_schemas.AddManagerUser,
+def regulate_manager(
+    req_body: user_schemas.AddOrRemoveManagerUser,
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_librarian_user),
 ):
     user = user_repository.get_one_by_email(req_body.email, db)
-    user_role = role_repository.get_one_by_id(req_body.role_id, db)
-    user_already_has_role = any(
-        (user_role_association.role.id == user_role.id)
-        for user_role_association in user.user_role_associations
-    )
-    if user_already_has_role:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"user is already a {user_role.name}",
+    new_association_role_ids = req_body.role_ids
+
+    for user_role_association in user.user_role_associations:
+        new_association_role_ids = list(
+            filter(
+                lambda role_id: role_id != user_role_association.role_id,
+                new_association_role_ids,
+            )
         )
-    user_repository.create_user_role_association(
-        user_schemas.CreateUserRoleAssociation(
-            **{"user_id": user.id, "role_id": user_role.id}
-        ),
-        db,
-    )
-    return {"message": "success", "detail": "manager user added"}
+
+        filtered_association = list(
+            filter(
+                lambda role_id: role_id == user_role_association.role_id
+                or user_role_association.role.name == UserRole.BORROWER.value,
+                req_body.role_ids,
+            )
+        )
+        if filtered_association:
+            continue
+        elif not filtered_association:
+            user_repository.destroy_user_role_association(
+                user_role_association.id,
+                db,
+            )
+
+    for role_id in new_association_role_ids:
+        user = user_repository.get_one_by_email(req_body.email, db)
+        user_role = role_repository.get_one_by_id(role_id, db)
+        user_repository.create_user_role_association(
+            user_schemas.CreateUserRoleAssociation(
+                **{"user_id": user.id, "role_id": user_role.id}
+            ),
+            db,
+        )
+    return {"message": "success", "detail": "manager user updated"}
 
 
 @router.get(
