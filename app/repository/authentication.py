@@ -55,7 +55,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     token_data = verify_token(token=token, credentials_exception=credentials_exception)
     db = SessionLocal()
     data = json.loads(token_data.replace("'", '"'))
-    user = user_repository.get_one(data["id"], db)
+    user = user_repository.get_one(data["id"], db, True)
     db.close()
     if user is None:
         raise credentials_exception
