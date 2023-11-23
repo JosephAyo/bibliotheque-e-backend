@@ -8,3 +8,4 @@ python-multipart
 pydantic
 fastapi-mail
 python-dotenv
+faker

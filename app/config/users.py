@@ -8,8 +8,12 @@ from ..repository import role as role_repository
 from ..repository import permission as permission_repository
 import os
 from dotenv import load_dotenv
+from faker import Faker
 
 load_dotenv(".env")
+
+
+fake = Faker()
 
 
 class Envs:
@@ -60,24 +64,50 @@ def create_default_roles_and_permissions():
                 )
 
 
-def create_default_users():
-    if None in default_librarian_data.values() or "" in default_librarian_data.values():
+def create_default_user(userRole: str, default_user_data: dict[str, str]):
+    if None in default_user_data.values() or "" in default_user_data.values():
         return
-    librarian_user = user_repository.get_one_by_email(
-        default_librarian_data["email"], SessionLocal(), True
+    default_user = user_repository.get_one_by_email(
+        default_user_data["email"], SessionLocal(), True
     )
-    if librarian_user is None:
-        librarian_user = user_repository.create(
-            user_schemas.UserSignUp(**default_librarian_data),
+    if default_user is None:
+        default_user = user_repository.create(
+            user_schemas.UserSignUp(**default_user_data),
             SessionLocal(),
         )
-        user_role = role_repository.get_one_by_name(
-            UserRole.LIBRARIAN.value, SessionLocal(), True
-        )
+        user_role = role_repository.get_one_by_name(userRole, SessionLocal(), True)
         if user_role is not None:
             user_repository.create_user_role_association(
                 user_schemas.CreateUserRoleAssociation(
-                    **{"user_id": librarian_user.id, "role_id": user_role.id}
+                    **{"user_id": default_user.id, "role_id": user_role.id}
                 ),
                 SessionLocal(),
             )
+
+
+def create_default_users():
+    # default librarian
+    create_default_user(UserRole.LIBRARIAN.value, default_librarian_data)
+    user_count = user_repository.count_all(SessionLocal())
+    if user_count >= 7:
+        return
+
+    # default borrower
+    for borrower_index in range(4):
+        user_data = {
+            "first_name": fake.first_name(),
+            "last_name": fake.last_name(),
+            "email": fake.email(),
+            "password": "password",
+        }
+        create_default_user(UserRole.BORROWER.value, user_data)
+
+    # default proprietor
+    for proprietor_index in range(2):
+        user_data = {
+            "first_name": fake.first_name(),
+            "last_name": fake.last_name(),
+            "email": fake.email(),
+            "password": "password",
+        }
+        create_default_user(UserRole.PROPRIETOR.value, user_data)

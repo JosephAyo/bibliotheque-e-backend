@@ -35,7 +35,7 @@ def get_one_by_id(
 
 
 def get_one_by_name(
-    name, db: Session = Depends(get_db), ignore_not_found_exception: bool = False
+    name: str, db: Session = Depends(get_db), ignore_not_found_exception: bool = False
 ):
     role = db.query(role_models.Role).filter(role_models.Role.name == name).first()
     if not role and not ignore_not_found_exception:

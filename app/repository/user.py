@@ -10,6 +10,10 @@ from sqlalchemy.orm import Session
 from .hashing import create_hash
 
 
+def count_all(db: Session = Depends(get_db)):
+    return db.query(user_models.User).count()
+
+
 def get_all(db: Session = Depends(get_db)):
     users = (
         db.query(user_models.User).order_by(user_models.User.updated_at.desc()).all()
