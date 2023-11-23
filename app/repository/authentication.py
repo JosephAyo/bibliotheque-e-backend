@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import json
+import os
 from typing import Annotated, Any, Union
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -14,9 +15,9 @@ from ..database.base import SessionLocal
 
 # to get a string like this run:
 # openssl rand -hex 32
-SECRET_KEY = "cb014ee235209cf15a7e4c1c0a0e1d6021a93420fc05f1299ee1cc56d16ca807"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+ALGORITHM = os.getenv("ALGORITHM", "")
+ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", 1))
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/users/login",
@@ -29,7 +30,7 @@ def create_access_token(data: Union[str, Any], expires_delta: timedelta | None =
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(days=45)
+        expire = datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
     to_encode = {"exp": expire, "sub": str(data)}
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
