@@ -8,10 +8,7 @@ from ..repository import user as user_repository
 from ..repository import role as role_repository
 from ..repository import permission as permission_repository
 import os
-from dotenv import load_dotenv
 from faker import Faker
-
-load_dotenv(".env")
 
 
 fake = Faker()

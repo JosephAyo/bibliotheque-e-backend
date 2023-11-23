@@ -13,8 +13,6 @@ from app.schemas.user import UserViewProfileData
 from ..repository import user as user_repository
 from ..database.base import SessionLocal
 
-# to get a string like this run:
-# openssl rand -hex 32
 SECRET_KEY = os.getenv("SECRET_KEY", "")
 ALGORITHM = os.getenv("ALGORITHM", "")
 ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", 1))

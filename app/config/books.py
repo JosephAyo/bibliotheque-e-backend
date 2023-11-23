@@ -3,9 +3,6 @@ from ..repository import user as user_repository
 from ..repository import book as book_repository
 from ..schemas import book as book_schemas
 import os
-from dotenv import load_dotenv
-
-load_dotenv(".env")
 from faker import Faker
 
 
