@@ -132,6 +132,7 @@ def create(
         title=req_body.title,
         author_name=req_body.author_name,
         description=req_body.description,
+        img_url=str(req_body.img_url),
         total_quantity=req_body.public_shelf_quantity + req_body.private_shelf_quantity,
         public_shelf_quantity=req_body.public_shelf_quantity,
         private_shelf_quantity=req_body.private_shelf_quantity,
@@ -190,7 +191,7 @@ def update(id, update_data: dict, db: Session = Depends(get_db)):
         if hasattr(book, key):
             if (value is None) and (not book_models.Book.__table__.c[key].nullable):
                 continue
-            setattr(book, key, value)
+            setattr(book, key, str(value) if key == "img_url" else value)
     setattr(book, "updated_at", datetime.utcnow())
     db.commit()
 

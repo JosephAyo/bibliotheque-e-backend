@@ -22,6 +22,7 @@ class Book(Base):
     title = Column(String, nullable=False)
     author_name = Column(String, nullable=False)
     description = Column(Text)
+    img_url = Column(Text)
     total_quantity = Column(Integer, nullable=False, default=0)
     public_shelf_quantity = Column(Integer, nullable=False, default=0)
     private_shelf_quantity = Column(Integer, nullable=False, default=0)

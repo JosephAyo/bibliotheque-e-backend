@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated, List, Optional
 from annotated_types import Ge
-from pydantic import BaseModel, ConfigDict, root_validator
+from pydantic import BaseModel, ConfigDict, HttpUrl, root_validator
 
 
 class NoExtraBaseModel(BaseModel):
@@ -16,6 +16,7 @@ class CreateBook(NoExtraBaseModel):
     title: str
     author_name: str
     description: str
+    img_url: HttpUrl
     public_shelf_quantity: Annotated[int, Ge(0)]
     private_shelf_quantity: Annotated[int, Ge(0)]
 
@@ -32,6 +33,7 @@ class ShowBook(IgnoreExtraBaseModel):
     title: str
     author_name: str
     description: str
+    img_url: HttpUrl
     created_at: datetime
     updated_at: datetime
 
@@ -80,6 +82,7 @@ class EditBookDetails(NoExtraBaseModel):
     title: Optional[str] = None
     author_name: Optional[str] = None
     description: Optional[str] = None
+    img_url: Optional[HttpUrl] = None
 
 
 class EditBookQuantity(NoExtraBaseModel):
