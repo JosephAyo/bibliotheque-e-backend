@@ -28,6 +28,10 @@ def get_book_query_base(db: Session = Depends(get_db)):
     )
 
 
+def count_all(db: Session = Depends(get_db)):
+    return db.query(book_models.Book).count()
+
+
 def get_all(
     current_user: Union[user_schemas.User, None], db: Session = Depends(get_db)
 ):

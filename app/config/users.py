@@ -1,3 +1,4 @@
+from typing import List
 from ..database.enums import RolePermission, UserRole
 from ..schemas import user as user_schemas
 from ..schemas import role as role_schemas
@@ -64,7 +65,7 @@ def create_default_roles_and_permissions():
                 )
 
 
-def create_default_user(userRole: str, default_user_data: dict[str, str]):
+def create_default_user(user_role_names: List[str], default_user_data: dict[str, str]):
     if None in default_user_data.values() or "" in default_user_data.values():
         return
     default_user = user_repository.get_one_by_email(
@@ -75,19 +76,24 @@ def create_default_user(userRole: str, default_user_data: dict[str, str]):
             user_schemas.UserSignUp(**default_user_data),
             SessionLocal(),
         )
-        user_role = role_repository.get_one_by_name(userRole, SessionLocal(), True)
-        if user_role is not None:
-            user_repository.create_user_role_association(
-                user_schemas.CreateUserRoleAssociation(
-                    **{"user_id": default_user.id, "role_id": user_role.id}
-                ),
-                SessionLocal(),
+        for user_role_name in user_role_names:
+            user_role = role_repository.get_one_by_name(
+                user_role_name, SessionLocal(), True
             )
+            if user_role is not None:
+                user_repository.create_user_role_association(
+                    user_schemas.CreateUserRoleAssociation(
+                        **{"user_id": default_user.id, "role_id": user_role.id}
+                    ),
+                    SessionLocal(),
+                )
 
 
 def create_default_users():
     # default librarian
-    create_default_user(UserRole.LIBRARIAN.value, default_librarian_data)
+    create_default_user(
+        [UserRole.LIBRARIAN.value, UserRole.PROPRIETOR.value], default_librarian_data
+    )
     user_count = user_repository.count_all(SessionLocal())
     if user_count >= 7:
         return
@@ -100,7 +106,7 @@ def create_default_users():
             "email": fake.email(),
             "password": "password",
         }
-        create_default_user(UserRole.BORROWER.value, user_data)
+        create_default_user([UserRole.BORROWER.value], user_data)
 
     # default proprietor
     for proprietor_index in range(2):
@@ -110,4 +116,4 @@ def create_default_users():
             "email": fake.email(),
             "password": "password",
         }
-        create_default_user(UserRole.PROPRIETOR.value, user_data)
+        create_default_user([UserRole.PROPRIETOR.value], user_data)

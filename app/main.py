@@ -2,6 +2,8 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
+from app.config.books import create_default_books
+
 from .config.users import create_default_roles_and_permissions, create_default_users
 from .routers import library, user
 from .database.base import engine
@@ -30,6 +32,7 @@ load_dotenv(".env")
 async def lifespan(app: FastAPI):
     create_default_roles_and_permissions()
     create_default_users()
+    create_default_books()
     yield
 
 
