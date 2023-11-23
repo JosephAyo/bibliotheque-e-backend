@@ -17,12 +17,20 @@ class Envs:
 
 
 authors = [
+    "Hank Green",
+    "John Green",
     "Arthur Conan Doyle",
     "George Orwell",
     "Agatha Christie",
     "Chinua Achebe",
-    "Wole Soyinka",
     "Chimamanda Ngozi Adichie",
+    "Wole Soyinka",
+    "Ben Okri",
+    "Teju Cole",
+    "Helon Habila",
+    "Sefi Atta",
+    "Chigozie Obioma",
+    "Buchi Emecheta",
 ]
 
 
@@ -33,7 +41,7 @@ def create_default_books():
     if default_user is None:
         return
     book_count = book_repository.count_all(SessionLocal())
-    if book_count >= 12:
+    if book_count >= 25:
         return
     for author in authors:
         book_repository.create(
@@ -42,7 +50,8 @@ def create_default_books():
                     "title": fake.catch_phrase(),
                     "author_name": author,
                     "description": fake.text(max_nb_chars=200),
-                    "img_url": "https://picsum.photos/200",
+                    "img_url": "https://picsum.photos/"
+                    + str(fake.random_int(min=200, max=700)),
                     "public_shelf_quantity": fake.random_int(min=5, max=300),
                     "private_shelf_quantity": fake.random_int(min=1, max=10),
                 }
