@@ -9,3 +9,4 @@ pydantic
 fastapi-mail
 python-dotenv
 faker
+fastapi_utilities

@@ -23,13 +23,21 @@ from .database.models import notification as notification_model
 from .database.models import faq as faq_model
 from .database.models import app_log as app_log_model
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_utilities import repeat_every
 
+
+
+@repeat_every(seconds=60)  # every minute
+def run_jobs():
+    print("job")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_default_roles_and_permissions()
     create_default_users()
     create_default_books()
+    
+    await run_jobs()
     yield
 
 
@@ -53,12 +61,9 @@ app_log_model.Base.metadata.create_all(engine)
 origins = os.getenv("ORIGINS", "").split(",")
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    CORSMiddleware
 )
 
 app.include_router(library.router)
 app.include_router(user.router)
+

@@ -80,7 +80,7 @@ def check_in_book(id: str, user_id: str, db: Session = Depends(get_db)):
     if not check_in_out:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"check in\out {id} not available",
+            detail=f"check in\\out {id} not available",
         )
 
     setattr(check_in_out, "returned", True)
