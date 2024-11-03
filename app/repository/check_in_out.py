@@ -101,23 +101,31 @@ def destroy(id, db: Session = Depends(get_db)):
     check_in_out.delete(synchronize_session=False)
     db.commit()
 
-def get_books_due(expiry_time: datetime, db: Session = Depends(get_db)):
-  """
-  This function fetches all books from the database where the "due_at" is 10 days away.
 
-  Args:
-      db: A SQLAlchemy database session object.
+def get_due_soon_books(due_time: datetime, db: Session = Depends(get_db)):
+    today = datetime.utcnow()
 
-  Returns:
-      A list of CheckInOut objects representing the books due in 10 days.
-  """
-  today = datetime.utcnow()
+    # Query for CheckInOut objects where due_at is between today and 10 days from today
+    books_due = (
+        db.query(check_in_out_models.CheckInOut)
+        .filter(check_in_out_models.CheckInOut.due_at >= today)
+        .filter(check_in_out_models.CheckInOut.due_at <= due_time)
+        .filter(check_in_out_models.CheckInOut.returned == False)
+        .all()
+    )
 
-  # Query for CheckInOut objects where due_at is between today and 10 days from today
-  books_due = db.query(check_in_out_models.CheckInOut) \
-      .filter(check_in_out_models.CheckInOut.due_at >= today) \
-      .filter(check_in_out_models.CheckInOut.due_at <= expiry_time) \
-      .filter(check_in_out_models.CheckInOut.returned == False) \
-      .all()
+    return books_due
 
-  return books_due
+
+def get_late_books(db: Session = Depends(get_db)):
+    today = datetime.utcnow()
+
+    # Query for CheckInOut objects where due_at is between today and 10 days from today
+    books_due = (
+        db.query(check_in_out_models.CheckInOut)
+        .filter(check_in_out_models.CheckInOut.due_at <= today)
+        .filter(check_in_out_models.CheckInOut.returned == False)
+        .all()
+    )
+
+    return books_due

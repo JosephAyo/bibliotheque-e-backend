@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.config.books import create_default_books
-from app.jobs.reminder import send_due_soon_reminders
+from app.jobs.reminder import send_due_soon_reminders, send_late_reminders
 
 from .config.users import create_default_roles_and_permissions, create_default_users
 from .routers import library, user
@@ -30,6 +30,7 @@ from fastapi_utilities import repeat_every
 @repeat_every(seconds=60 * 60)  # every hour
 async def run_jobs():
     await send_due_soon_reminders()
+    await send_late_reminders()
 
 
 @asynccontextmanager
