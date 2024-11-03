@@ -1,4 +1,8 @@
+from datetime import datetime, timedelta
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+from app.database.models.check_in_out import CheckInOut
 from ..schemas import book as book_schemas
 from ..schemas import generic as generic_schemas
 from ..repository import book as book_repository
@@ -215,3 +219,31 @@ def return_book(
     books = check_in_out_repository.check_in_book(req_body.id, current_user.id, db)
     data = {"message": "success", "data": books}
     return data
+
+
+@router.get(
+    "/borrower/reminder",
+    response_model=check_in_out_schemas.CheckInOutReminderResponse,
+    status_code=status.HTTP_200_OK,
+)
+def view_due_soon_and_late_books(
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_borrower_user),
+):
+    due_soon_checkouts: List[CheckInOut] = (
+        check_in_out_repository.get_due_soon_books_by_user(
+            current_user, datetime.utcnow() + timedelta(days=14), db
+        )
+    )
+
+    late_checkouts: List[CheckInOut] = check_in_out_repository.get_late_books_by_user(
+        current_user, db
+    )
+
+    return {
+        "message": "success",
+        "data": {
+            "has_due": len(due_soon_checkouts) >= 1,
+            "has_late": len(late_checkouts) >= 1,
+        },
+    }

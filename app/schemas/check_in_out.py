@@ -40,3 +40,11 @@ class CheckInOutListResponse(NoExtraBaseModel):
 
 class ReturnBook(NoExtraBaseModel):
     id: str
+
+class ReminderData(NoExtraBaseModel):
+    has_due: bool
+    has_late: bool
+
+class CheckInOutReminderResponse(NoExtraBaseModel):
+    message: str
+    data: ReminderData

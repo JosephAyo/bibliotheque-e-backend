@@ -10,13 +10,13 @@ from ..repository import user as user_repository
 from ..database.base import SessionLocal
 from ..helpers.send_email import send_email_async
 
-from app.repository.check_in_out import get_due_soon_books, get_late_books
+from app.repository.check_in_out import get_all_due_soon_books, get_all_late_books
 
 
 async def send_due_soon_reminders():
     due_time = datetime.utcnow() + timedelta(days=14)
 
-    check_outs: List[CheckInOut] = get_due_soon_books(due_time, SessionLocal())
+    check_outs: List[CheckInOut] = get_all_due_soon_books(due_time, SessionLocal())
 
     # Iterate over the books and send emails
     for check_out in check_outs:
@@ -36,7 +36,7 @@ async def send_due_soon_reminders():
 
 
 async def send_late_reminders():
-    check_outs: List[CheckInOut] = get_late_books(SessionLocal())
+    check_outs: List[CheckInOut] = get_all_late_books(SessionLocal())
 
     # Iterate over the books and send emails
     for check_out in check_outs:

@@ -102,7 +102,7 @@ def destroy(id, db: Session = Depends(get_db)):
     db.commit()
 
 
-def get_due_soon_books(due_time: datetime, db: Session = Depends(get_db)):
+def get_all_due_soon_books(due_time: datetime, db: Session = Depends(get_db)):
     today = datetime.utcnow()
 
     # Query for CheckInOut objects where due_at is between today and 10 days from today
@@ -117,7 +117,27 @@ def get_due_soon_books(due_time: datetime, db: Session = Depends(get_db)):
     return books_due
 
 
-def get_late_books(db: Session = Depends(get_db)):
+def get_due_soon_books_by_user(
+    current_user: user_schemas.User, due_time: datetime, db: Session = Depends(get_db)
+):
+    today = datetime.utcnow()
+
+    # Query for CheckInOut objects where due_at is between today and 10 days from today
+    books_due = (
+        db.query(check_in_out_models.CheckInOut)
+        .filter(check_in_out_models.CheckInOut.due_at >= today)
+        .filter(check_in_out_models.CheckInOut.due_at <= due_time)
+        .filter(check_in_out_models.CheckInOut.returned == False)
+        .filter(
+            check_in_out_models.CheckInOut.borrower_id == current_user.id,
+        )
+        .all()
+    )
+
+    return books_due
+
+
+def get_all_late_books(db: Session = Depends(get_db)):
     today = datetime.utcnow()
 
     # Query for CheckInOut objects where due_at is between today and 10 days from today
@@ -125,6 +145,23 @@ def get_late_books(db: Session = Depends(get_db)):
         db.query(check_in_out_models.CheckInOut)
         .filter(check_in_out_models.CheckInOut.due_at <= today)
         .filter(check_in_out_models.CheckInOut.returned == False)
+        .all()
+    )
+
+    return books_due
+
+
+def get_late_books_by_user(current_user: user_schemas.User, db: Session = Depends(get_db)):
+    today = datetime.utcnow()
+
+    # Query for CheckInOut objects where due_at is between today and 10 days from today
+    books_due = (
+        db.query(check_in_out_models.CheckInOut)
+        .filter(check_in_out_models.CheckInOut.due_at <= today)
+        .filter(check_in_out_models.CheckInOut.returned == False)
+        .filter(
+            check_in_out_models.CheckInOut.borrower_id == current_user.id,
+        )
         .all()
     )
 
