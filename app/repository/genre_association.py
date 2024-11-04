@@ -1,7 +1,6 @@
 from typing import List
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from sqlalchemy.orm import Session
-from sqlalchemy.orm.query import Query
 
 from ..database.models import book_genre_association as book_genre_association_model
 from ..schemas import genre as genre

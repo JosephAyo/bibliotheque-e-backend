@@ -62,7 +62,7 @@ def create_book(
         db,
     )
 
-    if req_body.genre_ids:
+    if req_body.genre_ids and any(genre_id for genre_id in req_body.genre_ids):
         genre_association_repository.create_multiple(
             created_book.id, req_body.genre_ids, db
         )
