@@ -182,5 +182,4 @@ def generate_auth_code(length=6):
         string.digits
     )  # You can customize this to include letters or other characters
     code = "".join(random.choice(characters) for _ in range(length))
-    print(f"code :>>{code}")
     return code

@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-import pprint
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
@@ -97,8 +96,6 @@ def edit_book_details(
                     book_genre_association.id
                 )
 
-    print('genres_association_ids_marked_for_delete:>>')
-    pprint.pprint(genres_association_ids_marked_for_delete)
     if genres_association_ids_marked_for_delete:
         genre_association_repository.destroy_multiple(
             genres_association_ids_marked_for_delete,
