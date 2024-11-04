@@ -26,11 +26,13 @@ class Book(Base):
     total_quantity = Column(Integer, nullable=False, default=0)
     public_shelf_quantity = Column(Integer, nullable=False, default=0)
     private_shelf_quantity = Column(Integer, nullable=False, default=0)
-    created_at =  Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
-    updated_at =  Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     is_deleted = Column(Boolean, default=False)
-    deleted_at =  Column(DateTime)
+    deleted_at = Column(DateTime)
 
     check_in_outs = relationship("CheckInOut")
-
-    
+    genre_associations = relationship(
+        "BookGenreAssociation",
+        lazy=False,
+    )

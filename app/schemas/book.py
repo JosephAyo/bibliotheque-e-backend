@@ -1,7 +1,10 @@
 from datetime import datetime
+from token import OP
 from typing import Annotated, List, Optional
 from annotated_types import Ge
 from pydantic import BaseModel, ConfigDict, HttpUrl, root_validator
+
+from app.schemas.genre import BookGenreAssociation
 
 
 class NoExtraBaseModel(BaseModel):
@@ -19,6 +22,7 @@ class CreateBook(NoExtraBaseModel):
     img_url: HttpUrl
     public_shelf_quantity: Annotated[int, Ge(0)]
     private_shelf_quantity: Annotated[int, Ge(0)]
+    genre_ids: Optional[List[str]] = []
 
 
 class Book(CreateBook):
@@ -36,6 +40,7 @@ class ShowBook(IgnoreExtraBaseModel):
     img_url: HttpUrl
     created_at: datetime
     updated_at: datetime
+    genre_associations: Optional[List[BookGenreAssociation]] = []
 
 
 class ShowBookPublic(ShowBook):
@@ -83,6 +88,7 @@ class EditBookDetails(NoExtraBaseModel):
     author_name: Optional[str] = None
     description: Optional[str] = None
     img_url: Optional[HttpUrl] = None
+    genre_ids: Optional[List[str]] = []
 
 
 class EditBookQuantity(NoExtraBaseModel):

@@ -1,12 +1,16 @@
 from datetime import datetime, timedelta
+import pprint
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database.models.check_in_out import CheckInOut
+from ..repository import genre_association as genre_association_repository
 from ..schemas import book as book_schemas
 from ..schemas import generic as generic_schemas
+from ..schemas import genre as genre_schemas
 from ..repository import book as book_repository
 from ..repository import check_in_out as check_in_out_repository
+from ..repository import genre as genre_repository
 from sqlalchemy.orm import Session
 from ..database.base import get_db
 from ..repository import authentication as authentication_repository
@@ -58,6 +62,11 @@ def create_book(
         current_user.id,
         db,
     )
+
+    if req_body.genre_ids:
+        genre_association_repository.create_multiple(
+            created_book.id, req_body.genre_ids, db
+        )
     return {"message": "success", "data": created_book}
 
 
@@ -68,9 +77,41 @@ def edit_book_details(
     current_user=Depends(authentication_repository.get_current_manager_user),
 ):
     id = req_body.id
-    book_repository.get_one(id, current_user.id, db)
+    book = book_repository.get_one(id, current_user.id, db)
     delattr(req_body, "id")
     book_repository.update(id, dict(req_body), db)
+    new_association_genre_ids = req_body.genre_ids
+    genres_association_ids_marked_for_delete = []
+
+    if req_body.genre_ids and any(genre_id for genre_id in req_body.genre_ids):
+        for book_genre_association in book["genre_associations"]:
+            new_association_genre_ids = list(
+                filter(
+                    lambda genre_id: genre_id != book_genre_association.genre_id,
+                    req_body.genre_ids,
+                )
+            )
+
+            if book_genre_association.genre_id not in req_body.genre_ids:
+                genres_association_ids_marked_for_delete.append(
+                    book_genre_association.id
+                )
+
+    print('genres_association_ids_marked_for_delete:>>')
+    pprint.pprint(genres_association_ids_marked_for_delete)
+    if genres_association_ids_marked_for_delete:
+        genre_association_repository.destroy_multiple(
+            genres_association_ids_marked_for_delete,
+            db,
+        )
+
+    if new_association_genre_ids:
+        genre_association_repository.create_multiple(
+            book["id"],
+            new_association_genre_ids,
+            db,
+        )
+
     return {"message": "success", "detail": "book details updated"}
 
 
@@ -247,3 +288,62 @@ def view_due_soon_and_late_books(
             "has_late": len(late_checkouts) >= 1,
         },
     }
+
+
+@router.get(
+    "/genre",
+    response_model=genre_schemas.GetGenresResponse,
+    status_code=status.HTTP_200_OK,
+)
+def view_genres(
+    db: Session = Depends(get_db),
+):
+    genres = genre_repository.get_all(db)
+    data = {"message": "success", "data": genres}
+    return data
+
+
+@router.post(
+    "/genre",
+    response_model=generic_schemas.NoDataResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_genre(
+    req_body: genre_schemas.CreateGenre,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_manager_user),
+):
+    existing_genre = genre_repository.get_one_by_name(req_body.name, db, True)
+    if existing_genre:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"genre '{req_body.name}' already exists",
+        )
+
+    genre_repository.create(
+        req_body,
+        db,
+    )
+    return {"message": "success", "detail": "genre created"}
+
+
+@router.patch("/genre", response_model=generic_schemas.NoDataResponse)
+def edit_genre_details(
+    req_body: genre_schemas.EditGenre,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_manager_user),
+):
+    id = req_body.id
+    genre_repository.get_one(id, db)
+    delattr(req_body, "id")
+
+    if req_body.name:
+        existing_genre = genre_repository.get_one_by_name(req_body.name, db, True)
+        if existing_genre:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"genre '{req_body.name}' already exists",
+            )
+
+    genre_repository.update(id, dict(req_body), db)
+    return {"message": "success", "detail": "genre details updated"}
