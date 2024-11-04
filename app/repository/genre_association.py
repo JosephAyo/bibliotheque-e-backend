@@ -6,6 +6,7 @@ from ..database.models import book_genre_association as book_genre_association_m
 from ..schemas import genre as genre
 from ..database.base import get_db
 from ..repository import genre as genre_repository
+from ..utils.constants import MAX_BOOK_GENRES_ASSOCIATIONS
 
 
 def create_multiple(
@@ -21,8 +22,8 @@ def create_multiple(
 
     existing_genre_ids = set(assoc.genre_id for assoc in existing_associations)
 
-    association_limit = 5
-    if len(existing_associations) + len(genre_ids) <= association_limit:
+    
+    if len(existing_associations) + len(genre_ids) <= MAX_BOOK_GENRES_ASSOCIATIONS:
         # raise HTTPException(
         #     status_code=status.HTTP_400_BAD_REQUEST,
         #     detail=f"book cannot not have more than {association_limit} genres",

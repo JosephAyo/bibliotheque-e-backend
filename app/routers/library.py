@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database.models.check_in_out import CheckInOut
+from app.utils.constants import MAX_BOOK_GENRES_ASSOCIATIONS
 from ..repository import genre_association as genre_association_repository
 from ..schemas import book as book_schemas
 from ..schemas import generic as generic_schemas
@@ -56,6 +57,11 @@ def create_book(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_proprietor_user),
 ):
+    if(req_body.genre_ids and len(req_body.genre_ids) > MAX_BOOK_GENRES_ASSOCIATIONS):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"book cannot not have more than {MAX_BOOK_GENRES_ASSOCIATIONS} genres"
+        )
+    
     created_book = book_repository.create(
         req_body,
         current_user.id,
