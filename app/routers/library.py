@@ -268,7 +268,7 @@ def return_book(
 
 
 @router.get(
-    "/borrower/reminder",
+    "/borrower/reminders",
     response_model=check_in_out_schemas.CheckInOutReminderResponse,
     status_code=status.HTTP_200_OK,
 )
@@ -296,7 +296,7 @@ def view_due_soon_and_late_books(
 
 
 @router.get(
-    "/genre",
+    "/genres",
     response_model=genre_schemas.GetGenresResponse,
     status_code=status.HTTP_200_OK,
 )
@@ -309,7 +309,7 @@ def view_genres(
 
 
 @router.post(
-    "/genre",
+    "/genres",
     response_model=generic_schemas.NoDataResponse,
     status_code=status.HTTP_201_CREATED,
 )
@@ -332,7 +332,7 @@ def create_genre(
     return {"message": "success", "detail": "genre created"}
 
 
-@router.patch("/genre", response_model=generic_schemas.NoDataResponse)
+@router.patch("/genres", response_model=generic_schemas.NoDataResponse)
 def edit_genre_details(
     req_body: genre_schemas.EditGenre,
     db: Session = Depends(get_db),
