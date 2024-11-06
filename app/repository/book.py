@@ -39,14 +39,13 @@ def get_all(
     genre_ids: Union[List[str], None],
     db: Session = Depends(get_db),
 ):
+    query_base = get_book_query_base(db).order_by(book_models.Book.updated_at.desc())
     query = (
-        get_book_query_base(db)
-        .order_by(book_models.Book.updated_at.desc())
-        .join(book_genre_association_model.BookGenreAssociation)
+        query_base.join(book_genre_association_model.BookGenreAssociation)
         .join(genre_model.Genre)
         .filter(genre_model.Genre.id.in_(genre_ids))
         if genre_ids is not None
-        else get_book_query_base(db).order_by(book_models.Book.updated_at.desc())
+        else query_base
     )
 
     if current_user is None:
@@ -104,9 +103,10 @@ def get_one(
 def search(
     current_user: Union[user_schemas.User, None],
     search_string: str,
+    genre_ids: Union[List[str], None],
     db: Session = Depends(get_db),
 ):
-    query = (
+    query_base = (
         get_book_query_base(db)
         .order_by(book_models.Book.updated_at.desc())
         .filter(
@@ -116,6 +116,14 @@ def search(
                 book_models.Book.description.ilike(f"%{search_string}%"),
             )
         )
+    )
+
+    query = (
+        query_base.join(book_genre_association_model.BookGenreAssociation)
+        .join(genre_model.Genre)
+        .filter(genre_model.Genre.id.in_(genre_ids))
+        if genre_ids is not None
+        else query_base
     )
 
     if current_user is None:

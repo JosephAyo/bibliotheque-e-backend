@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import pprint
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
@@ -41,9 +42,11 @@ def view_books(db: Session = Depends(get_db), genres: str | None = None):
 def view_books_as_manager(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_manager_user),
-    genres: str | None = None
+    genres: str | None = None,
 ):
-    books = book_repository.get_all(current_user, genres.split(",") if genres is not None else None, db)
+    books = book_repository.get_all(
+        current_user, genres.split(",") if genres is not None else None, db
+    )
     data = {"message": "success", "data": books}
     return data
 
@@ -145,8 +148,13 @@ def search_for_books(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_user_or_none),
     query: str = Query(None, description="Search books by title, author & description"),
+    genres: str = Query(
+        None, description="Filter books by multiple genre ids separated by comma ',' "
+    ),
 ):
-    books = book_repository.search(current_user, query, db)
+    books = book_repository.search(
+        current_user, query, genres.split(",") if genres is not None else None, db
+    )
     data = {"message": "success", "data": books}
     return data
 
@@ -160,8 +168,11 @@ def search_for_books_as_manager(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_manager_user),
     query: str = Query(None, description="Search books by title, author & description"),
+    genres: str = Query(
+        None, description="Filter books by multiple genre ids separated by comma ',' "
+    ),
 ):
-    books = book_repository.search(current_user, query, db)
+    books = book_repository.search(current_user, query, genres.split(",") if genres is not None else None, db)
     data = {"message": "success", "data": books}
     return data
 
