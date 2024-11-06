@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
@@ -8,6 +8,8 @@ from ..schemas import user as user_schemas
 from ..schemas import book as book_schemas
 from ..database.models import check_in_out as check_in_out_models
 from datetime import datetime
+from ..database.models import genre as genre_model
+from ..database.models import book_genre_association as book_genre_association_model
 
 
 def get_book_query_base(db: Session = Depends(get_db)):
@@ -33,9 +35,19 @@ def count_all(db: Session = Depends(get_db)):
 
 
 def get_all(
-    current_user: Union[user_schemas.User, None], db: Session = Depends(get_db)
+    current_user: Union[user_schemas.User, None],
+    genre_ids: Union[List[str], None],
+    db: Session = Depends(get_db),
 ):
-    query = get_book_query_base(db).order_by(book_models.Book.updated_at.desc())
+    query = (
+        get_book_query_base(db)
+        .order_by(book_models.Book.updated_at.desc())
+        .join(book_genre_association_model.BookGenreAssociation)
+        .join(genre_model.Genre)
+        .filter(genre_model.Genre.id.in_(genre_ids))
+        if genre_ids is not None
+        else get_book_query_base(db).order_by(book_models.Book.updated_at.desc())
+    )
 
     if current_user is None:
         user_books = query.filter(book_models.Book.public_shelf_quantity > 0).all()

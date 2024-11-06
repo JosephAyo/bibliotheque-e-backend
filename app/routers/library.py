@@ -25,10 +25,10 @@ router = APIRouter(prefix="/library/books", tags=["Library"])
     response_model=book_schemas.ShowBooksPublicResponse,
     status_code=status.HTTP_200_OK,
 )
-def view_books(
-    db: Session = Depends(get_db),
-):
-    books = book_repository.get_all(None, db)
+def view_books(db: Session = Depends(get_db), genres: str | None = None):
+    books = book_repository.get_all(
+        None, genres.split(",") if genres is not None else None, db
+    )
     data = {"message": "success", "data": books}
     return data
 
@@ -41,8 +41,9 @@ def view_books(
 def view_books_as_manager(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_manager_user),
+    genres: str | None = None
 ):
-    books = book_repository.get_all(current_user, db)
+    books = book_repository.get_all(current_user, genres.split(",") if genres is not None else None, db)
     data = {"message": "success", "data": books}
     return data
 
@@ -57,11 +58,12 @@ def create_book(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_proprietor_user),
 ):
-    if(req_body.genre_ids and len(req_body.genre_ids) > MAX_BOOK_GENRES_ASSOCIATIONS):
+    if req_body.genre_ids and len(req_body.genre_ids) > MAX_BOOK_GENRES_ASSOCIATIONS:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=f"book cannot not have more than {MAX_BOOK_GENRES_ASSOCIATIONS} genres"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"book cannot not have more than {MAX_BOOK_GENRES_ASSOCIATIONS} genres",
         )
-    
+
     created_book = book_repository.create(
         req_body,
         current_user.id,
