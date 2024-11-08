@@ -23,6 +23,8 @@ class EditCuration(NoExtraBaseModel):
     id: str
     title: Optional[str] = None
     description: Optional[str] = None
+    published: Optional[bool] = None
+    book_ids: Optional[List[str]] = []
 
 
 class BookCurationAssociation(IgnoreExtraBaseModel):

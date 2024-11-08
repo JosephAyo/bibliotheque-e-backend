@@ -3,6 +3,7 @@ import pprint
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.database.models import book_curation_association
 from app.database.models.check_in_out import CheckInOut
 from app.utils.constants import MAX_BOOK_GENRES_ASSOCIATIONS
 from ..repository import genre_association as genre_association_repository
@@ -398,6 +399,50 @@ def create_curation(
         req_body,
         db,
     )
-    curation_association_repository.create_multiple(req_body.book_ids, curation.id, db)
+    curation_association_repository.create_multiple(curation.id, req_body.book_ids, db)
 
     return {"message": "success", "detail": "curation created"}
+
+
+@router.put("/curations", response_model=generic_schemas.NoDataResponse)
+def edit_curation_details(
+    req_body: curation_schemas.EditCuration,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_manager_user),
+):
+    id = req_body.id
+    curation = curation_repository.get_one(id, db)
+    delattr(req_body, "id")
+
+    curation_repository.update(id, dict(req_body), db)
+    if curation is not None:
+        new_association_book_ids = req_body.book_ids
+        curation_association_ids_marked_for_delete = []
+
+        if req_body.book_ids is not None:
+            for curation_association in curation.curation_associations:
+                new_association_book_ids = list(
+                    filter(
+                        lambda book_id: book_id != curation_association.book_id,
+                        req_body.book_ids,
+                    )
+                )
+
+                if curation_association.book_id not in req_body.book_ids:
+                    curation_association_ids_marked_for_delete.append(
+                        curation_association.id
+                    )
+
+        if curation_association_ids_marked_for_delete:
+            curation_association_repository.destroy_multiple(
+                curation_association_ids_marked_for_delete,
+                db,
+            )
+
+        if new_association_book_ids:
+            curation_association_repository.create_multiple(
+                curation.id,
+                new_association_book_ids,
+                db,
+            )
+    return {"message": "success", "detail": "curation details updated"}

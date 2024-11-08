@@ -12,8 +12,8 @@ from ..repository import book as book_repository
 
 
 def create_multiple(
-    book_ids: List[str],
     curation_id: str,
+    book_ids: List[str],
     db: Session = Depends(get_db),
 ):
     existing_associations = (
