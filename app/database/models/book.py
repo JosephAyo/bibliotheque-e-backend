@@ -11,6 +11,7 @@ from sqlalchemy.orm import relationship
 from ..base import Base
 import uuid
 import datetime
+from .book_curation_association import BookCurationAssociation  # import Parent in Child to prevent Child being loaded before Parent
 
 
 class Book(Base):
@@ -35,4 +36,8 @@ class Book(Base):
     genre_associations = relationship(
         "BookGenreAssociation",
         lazy=False,
+    )
+    curation_association = relationship(
+        'BookCurationAssociation',
+        back_populates="book",
     )
