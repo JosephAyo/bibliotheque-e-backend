@@ -26,4 +26,5 @@ class Genre(Base):
 
     book_genre_association = relationship(
         "BookGenreAssociation",
+        back_populates='genre'
     )
