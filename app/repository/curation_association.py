@@ -1,3 +1,4 @@
+import pprint
 from typing import List
 from fastapi import Depends
 from sqlalchemy.orm import Session
@@ -7,7 +8,7 @@ from ..database.models import (
 )
 from ..schemas import curation as curation
 from ..database.base import get_db
-from ..repository import curation as curation_repository
+from ..repository import book as book_repository
 
 
 def create_multiple(
@@ -24,10 +25,9 @@ def create_multiple(
     existing_book_ids = set(assoc.book_id for assoc in existing_associations)
 
     valid_book_ids = set(
-        book_id
-        for book_id in book_ids
-        if curation_repository.get_one(book_id, db, True)
+        book_id for book_id in book_ids if book_repository.get_one(book_id, None, db)
     )
+
     new_associations = []
     for book_id in valid_book_ids:
         if book_id not in existing_book_ids:

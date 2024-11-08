@@ -9,9 +9,12 @@ from ..repository import genre_association as genre_association_repository
 from ..schemas import book as book_schemas
 from ..schemas import generic as generic_schemas
 from ..schemas import genre as genre_schemas
+from ..schemas import curation as curation_schemas
 from ..repository import book as book_repository
 from ..repository import check_in_out as check_in_out_repository
 from ..repository import genre as genre_repository
+from ..repository import curation as curation_repository
+from ..repository import curation_association as curation_association_repository
 from sqlalchemy.orm import Session
 from ..database.base import get_db
 from ..repository import authentication as authentication_repository
@@ -172,7 +175,9 @@ def search_for_books_as_manager(
         None, description="Filter books by multiple genre ids separated by comma ',' "
     ),
 ):
-    books = book_repository.search(current_user, query, genres.split(",") if genres is not None else None, db)
+    books = book_repository.search(
+        current_user, query, genres.split(",") if genres is not None else None, db
+    )
     data = {"message": "success", "data": books}
     return data
 
@@ -363,3 +368,36 @@ def edit_genre_details(
 
     genre_repository.update(id, dict(req_body), db)
     return {"message": "success", "detail": "genre details updated"}
+
+
+@router.get(
+    "/curations",
+    response_model=curation_schemas.GetCurationsResponse,
+    status_code=status.HTTP_200_OK,
+)
+def view_curation(
+    db: Session = Depends(get_db),
+):
+    curation = curation_repository.get_all(db)
+    response = {"message": "success", "data": curation}
+    return response
+
+
+@router.post(
+    "/curations",
+    response_model=generic_schemas.NoDataResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_curation(
+    req_body: curation_schemas.CreateCuration,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_manager_user),
+):
+
+    curation = curation_repository.create(
+        req_body,
+        db,
+    )
+    curation_association_repository.create_multiple(req_body.book_ids, curation.id, db)
+
+    return {"message": "success", "detail": "curation created"}

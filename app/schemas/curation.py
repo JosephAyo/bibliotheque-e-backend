@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 from pydantic import BaseModel, ConfigDict
 from .book import ShowBookPublic
 
@@ -16,6 +16,7 @@ class CreateCuration(NoExtraBaseModel):
     title: str
     description: str
     published: bool
+    book_ids: List[str]
 
 
 class EditCuration(NoExtraBaseModel):
@@ -35,6 +36,7 @@ class ShowCuration(IgnoreExtraBaseModel):
     id: str
     title: str
     description: str
+    published: bool
     curation_associations: List[BookCurationAssociation]
     created_at: datetime
     updated_at: datetime

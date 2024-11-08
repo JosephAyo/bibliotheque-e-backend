@@ -19,7 +19,7 @@ class BookCurationAssociation(Base):
 
     curation = relationship(
         "Curation",
-        back_populates="book_curation_associations",
+        back_populates="curation_associations",
     )
     book = relationship(
         "Book",

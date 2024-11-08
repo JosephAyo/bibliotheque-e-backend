@@ -25,7 +25,7 @@ class Curation(Base):
     is_deleted = Column(Boolean, default=False)
     deleted_at = Column(DateTime)
 
-    book_curation_associations = relationship(
+    curation_associations = relationship(
         "BookCurationAssociation",
         lazy=False
     )
