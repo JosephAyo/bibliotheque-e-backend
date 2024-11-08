@@ -1,9 +1,7 @@
 from datetime import datetime, timedelta
-import pprint
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.database.models import book_curation_association
 from app.database.models.check_in_out import CheckInOut
 from app.utils.constants import MAX_BOOK_GENRES_ASSOCIATIONS
 from ..repository import genre_association as genre_association_repository
@@ -361,7 +359,7 @@ def edit_genre_details(
 
     if req_body.name:
         existing_genre = genre_repository.get_one_by_name(req_body.name, db, True)
-        if existing_genre:
+        if existing_genre and (existing_genre.id != id):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"genre '{req_body.name}' already exists",
