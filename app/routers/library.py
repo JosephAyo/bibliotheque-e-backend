@@ -30,7 +30,7 @@ router = APIRouter(prefix="/library/books", tags=["Library"])
 )
 def view_books(db: Session = Depends(get_db), genres: str | None = None):
     books = book_repository.get_all(
-        None, genres.split(",") if genres is not None else None, db
+        None, genres.split(",") if genres else None, db
     )
     data = {"message": "success", "data": books}
     return data
@@ -47,7 +47,7 @@ def view_books_as_manager(
     genres: str | None = None,
 ):
     books = book_repository.get_all(
-        current_user, genres.split(",") if genres is not None else None, db
+        current_user, genres.split(",") if genres else None, db
     )
     data = {"message": "success", "data": books}
     return data
@@ -155,7 +155,7 @@ def search_for_books(
     ),
 ):
     books = book_repository.search(
-        current_user, query, genres.split(",") if genres is not None else None, db
+        current_user, query, genres.split(",") if genres else None, db
     )
     data = {"message": "success", "data": books}
     return data
@@ -175,7 +175,7 @@ def search_for_books_as_manager(
     ),
 ):
     books = book_repository.search(
-        current_user, query, genres.split(",") if genres is not None else None, db
+        current_user, query, genres.split(",") if genres else None, db
     )
     data = {"message": "success", "data": books}
     return data
