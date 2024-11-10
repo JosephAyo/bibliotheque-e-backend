@@ -41,4 +41,4 @@ class GetGenresResponse(IgnoreExtraBaseModel):
 class BookGenreAssociation(IgnoreExtraBaseModel):
     book_id: str
     genre_id: str
-    genre: CreateGenre
+    genre: ShowGenre
