@@ -7,6 +7,10 @@ from ..database.base import get_db
 from datetime import datetime
 
 
+def count_all(db: Session = Depends(get_db)):
+    return db.query(genre_model.Genre).count()
+
+
 def get_all(db: Session = Depends(get_db)):
     return db.query(
         genre_model.Genre,

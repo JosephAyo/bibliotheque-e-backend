@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.config.books import create_default_books
+from app.config.genres import create_default_genres
 from app.jobs.reminder import send_due_soon_reminders, send_late_reminders
 
 from .config.users import create_default_roles_and_permissions, create_default_users
@@ -37,6 +38,7 @@ async def run_jobs():
 async def lifespan(app: FastAPI):
     create_default_roles_and_permissions()
     create_default_users()
+    create_default_genres() 
     create_default_books()
 
     await run_jobs()
