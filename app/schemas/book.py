@@ -1,5 +1,4 @@
 from datetime import datetime
-from token import OP
 from typing import Annotated, List, Optional
 from annotated_types import Ge
 from pydantic import BaseModel, ConfigDict, HttpUrl, root_validator
@@ -12,7 +11,7 @@ class NoExtraBaseModel(BaseModel):
 
 
 class IgnoreExtraBaseModel(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="ignore", from_attributes=True)
 
 
 class CreateBook(NoExtraBaseModel):
@@ -41,6 +40,9 @@ class ShowBook(IgnoreExtraBaseModel):
     created_at: datetime
     updated_at: datetime
     genre_associations: Optional[List[BookGenreAssociation]] = []
+
+    class Config:
+        orm_mode = True
 
 
 class ShowBookPublic(ShowBook):

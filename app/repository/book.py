@@ -89,7 +89,9 @@ def get_one(
             and_(book_models.Book.public_shelf_quantity > 0, book_models.Book.id == id)
         ).first()
     else:
-        book = query.filter(book_models.Book.id == id).first()
+        book = query.filter(
+            book_models.Book.id == id
+        ).first()
     if not book:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"book {id} not available"

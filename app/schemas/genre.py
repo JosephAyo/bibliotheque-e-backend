@@ -8,16 +8,17 @@ class NoExtraBaseModel(BaseModel):
 
 
 class IgnoreExtraBaseModel(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="ignore", from_attributes=True)
 
 
 class CreateGenre(NoExtraBaseModel):
     name: str
     description: str
 
-    @field_validator('name')
+    @field_validator("name")
     def normalize_name(cls, v):
         return v.lower()
+
 
 class EditGenre(NoExtraBaseModel):
     id: str
