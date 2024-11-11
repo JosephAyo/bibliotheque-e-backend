@@ -9,6 +9,17 @@ from ..schemas import check_in_out as check_in_out_schemas
 from sqlalchemy import Column, and_
 
 
+def get_all(db: Session = Depends(get_db)):
+    return (
+        db.query(check_in_out_models.CheckInOut)
+        .filter_by(
+            check_in_out_models.CheckInOut.returned == False,
+        )
+        .order_by(check_in_out_models.CheckInOut.updated_at.desc())
+        .all()
+    )
+
+
 def get_all_by_user(current_user: user_schemas.User, db: Session = Depends(get_db)):
     return (
         db.query(check_in_out_models.CheckInOut)
@@ -151,7 +162,9 @@ def get_all_late_books(db: Session = Depends(get_db)):
     return books_due
 
 
-def get_late_books_by_user(current_user: user_schemas.User, db: Session = Depends(get_db)):
+def get_late_books_by_user(
+    current_user: user_schemas.User, db: Session = Depends(get_db)
+):
     today = datetime.utcnow()
 
     # Query for CheckInOut objects where due_at is between today and 10 days from today

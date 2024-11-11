@@ -9,6 +9,7 @@ import random
 import string
 from app.database.enums import UserRole
 
+from app.database.models.user import User
 from app.schemas.user import UserViewProfileData
 from ..repository import user as user_repository
 from ..database.base import SessionLocal
@@ -45,6 +46,19 @@ def verify_token(token: str, credentials_exception):
         raise credentials_exception
 
 
+def check_if_manager_user(user: User | None):
+    if user is None:
+        return False
+
+    return any(
+        (
+            user_role_association.role.name == UserRole.PROPRIETOR.value
+            or user_role_association.role.name == UserRole.LIBRARIAN.value
+        )
+        for user_role_association in user.user_role_associations
+    )
+
+
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -72,15 +86,8 @@ async def get_current_manager_user(token: Annotated[str, Depends(oauth2_scheme)]
     data = json.loads(token_data.replace("'", '"'))
     user: UserViewProfileData = user_repository.get_one(data["id"], db, True)
     db.close()
-    if user is None:
-        raise credentials_exception
-    is_manager_user = any(
-        (
-            user_role_association.role.name == UserRole.PROPRIETOR.value
-            or user_role_association.role.name == UserRole.LIBRARIAN.value
-        )
-        for user_role_association in user.user_role_associations
-    )
+
+    is_manager_user = check_if_manager_user(user)
 
     if not is_manager_user:
         raise credentials_exception
@@ -170,7 +177,7 @@ async def get_current_user_or_none(
         )
         db = SessionLocal()
         data = json.loads(token_data.replace("'", '"'))
-        user = user_repository.get_one(data["id"], db)
+        user = user_repository.get_one(data["id"], db, True)
         db.close()
         return user
     return None

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Union
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database.models.check_in_out import CheckInOut
@@ -29,11 +29,32 @@ router = APIRouter(prefix="/library/books", tags=["Library"])
     status_code=status.HTTP_200_OK,
 )
 def view_books(db: Session = Depends(get_db), genres: str | None = None):
-    books = book_repository.get_all(
-        None, genres.split(",") if genres else None, db
-    )
+    books = book_repository.get_all(None, genres.split(",") if genres else None, db)
     data = {"message": "success", "data": books}
     return data
+
+
+@router.get(
+    "/{id}",
+    response_model=Union[
+        book_schemas.ShowBookPrivateResponse, book_schemas.ShowBookPublicResponse
+    ],
+    status_code=status.HTTP_200_OK,
+)
+def view_book(
+    id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_user_or_none),
+):
+    book = book_repository.get_one(id, current_user, db)
+    response = {"message": "success", "data": book}
+
+    data = (
+        book_schemas.ShowBookPrivateResponse(**response)
+        if authentication_repository.check_if_manager_user(current_user)
+        else book_schemas.ShowBookPublicResponse(**response)
+    )
+    return data.dict()
 
 
 @router.get(
@@ -233,6 +254,20 @@ def view_borrowed_books(
     current_user=Depends(authentication_repository.get_current_borrower_user),
 ):
     check_in_outs = check_in_out_repository.get_all_by_user(current_user, db)
+    data = {"message": "success", "data": check_in_outs}
+    return data
+
+
+@router.get(
+    "/borrower/manager",
+    response_model=check_in_out_schemas.CheckInOutListResponse,
+    status_code=status.HTTP_200_OK,
+)
+def view_borrowed_books_as_manager(
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_librarian_user),
+):
+    check_in_outs = check_in_out_repository.get_all(db)
     data = {"message": "success", "data": check_in_outs}
     return data
 
