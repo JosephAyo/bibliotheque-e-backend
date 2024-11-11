@@ -41,9 +41,6 @@ class ShowBook(IgnoreExtraBaseModel):
     updated_at: datetime
     genre_associations: Optional[List[BookGenreAssociation]] = []
 
-    class Config:
-        orm_mode = True
-
 
 class ShowBookPublic(ShowBook):
     public_shelf_quantity: int

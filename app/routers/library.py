@@ -35,7 +35,7 @@ def view_books(db: Session = Depends(get_db), genres: str | None = None):
 
 
 @router.get(
-    "/{id}",
+    "/id/{id}",
     response_model=Union[
         book_schemas.ShowBookPrivateResponse, book_schemas.ShowBookPublicResponse
     ],
