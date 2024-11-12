@@ -6,6 +6,7 @@ from sqlalchemy import Column
 from app.database.models.check_in_out import CheckInOut
 from app.database.models.user import User
 from app.helpers.email_templates import get_book_due_soon_email, get_book_late_email
+from app.utils.constants import DUE_DAYS_REMINDER_AT
 from ..repository import user as user_repository
 from ..database.base import SessionLocal
 from ..helpers.send_email import send_email_async
@@ -14,7 +15,7 @@ from app.repository.check_in_out import get_all_due_soon_books, get_all_late_boo
 
 
 async def send_due_soon_reminders():
-    due_time = datetime.utcnow() + timedelta(days=14)
+    due_time = datetime.utcnow() + timedelta(days=DUE_DAYS_REMINDER_AT)
 
     check_outs: List[CheckInOut] = get_all_due_soon_books(due_time, SessionLocal())
 

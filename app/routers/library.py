@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
+import pprint
 from typing import List, Union
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database.models.check_in_out import CheckInOut
-from app.utils.constants import MAX_BOOK_GENRES_ASSOCIATIONS
+from app.utils.constants import DUE_DAYS_REMINDER_AT, MAX_BOOK_GENRES_ASSOCIATIONS
 from ..repository import genre_association as genre_association_repository
 from ..schemas import book as book_schemas
 from ..schemas import generic as generic_schemas
@@ -328,9 +329,11 @@ def view_due_soon_and_late_books(
 ):
     due_soon_checkouts: List[CheckInOut] = (
         check_in_out_repository.get_due_soon_books_by_user(
-            current_user, datetime.utcnow() + timedelta(days=14), db
+            current_user, datetime.utcnow() + timedelta(days=DUE_DAYS_REMINDER_AT), db
         )
     )
+
+    pprint.pprint({"due_soon_checkouts": due_soon_checkouts})
 
     late_checkouts: List[CheckInOut] = check_in_out_repository.get_late_books_by_user(
         current_user, db
