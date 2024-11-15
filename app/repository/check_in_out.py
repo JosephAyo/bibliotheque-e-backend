@@ -1,3 +1,4 @@
+import pprint
 from fastapi import Depends, HTTPException, status
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
@@ -12,9 +13,6 @@ from sqlalchemy import Column, and_
 def get_all(db: Session = Depends(get_db)):
     return (
         db.query(check_in_out_models.CheckInOut)
-        .filter_by(
-            check_in_out_models.CheckInOut.returned == False,
-        )
         .order_by(check_in_out_models.CheckInOut.updated_at.desc())
         .all()
     )

@@ -3,6 +3,7 @@ import pprint
 from typing import List, Union
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.database.enums import BorrowStatusFilter
 from app.database.models.check_in_out import CheckInOut
 from app.utils.constants import DUE_DAYS_REMINDER_AT, MAX_BOOK_GENRES_ASSOCIATIONS
 from ..repository import genre_association as genre_association_repository
@@ -267,8 +268,20 @@ def view_borrowed_books(
 def view_borrowed_books_as_manager(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_librarian_user),
+    status: BorrowStatusFilter = Query(None, description="borrow status filter"),
 ):
-    check_in_outs = check_in_out_repository.get_all(db)
+    check_in_outs = []
+
+    if (not status) or status == BorrowStatusFilter.ALL:
+        check_in_outs = check_in_out_repository.get_all(db)
+    elif status == BorrowStatusFilter.DUE_SOON:
+        check_in_outs = check_in_out_repository.get_all_due_soon_books(
+            datetime.utcnow() + timedelta(days=DUE_DAYS_REMINDER_AT),
+            db,
+        )
+        pprint.pprint(len(check_in_outs))
+    elif status == BorrowStatusFilter.LATE:
+        check_in_outs = check_in_out_repository.get_all_late_books(db)
     data = {"message": "success", "data": check_in_outs}
     return data
 

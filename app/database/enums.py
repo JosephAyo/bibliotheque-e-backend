@@ -20,3 +20,9 @@ class UserRole(Enum):
 
 class RolePermission(Enum):
     ALL = "all"
+
+
+class BorrowStatusFilter(Enum):
+    ALL = "all"
+    DUE_SOON = "due-soon"
+    LATE = "late"
