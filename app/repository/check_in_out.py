@@ -18,6 +18,16 @@ def get_all(db: Session = Depends(get_db)):
     )
 
 
+def get_one(
+    id: str, db: Session = Depends(get_db), ignore_not_found_exception: bool = False
+):
+    check_in_out = db.query(check_in_out_models.CheckInOut).filter(check_in_out_models.CheckInOut.id == id).first()
+    if not check_in_out and not ignore_not_found_exception:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"borrowed book {id} not available"
+        )
+    return check_in_out
+
 def get_all_by_user(current_user: user_schemas.User, db: Session = Depends(get_db)):
     return (
         db.query(check_in_out_models.CheckInOut)

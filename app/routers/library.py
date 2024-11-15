@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta
 import pprint
 from typing import List, Union
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 
 from app.database.enums import BorrowStatusFilter
 from app.database.models.check_in_out import CheckInOut
+from app.helpers.email_templates import get_book_due_soon_email, get_book_late_email
+from app.helpers.send_email import send_email_background
 from app.utils.constants import DUE_DAYS_REMINDER_AT, MAX_BOOK_GENRES_ASSOCIATIONS
 from ..repository import genre_association as genre_association_repository
 from ..schemas import book as book_schemas
@@ -15,6 +17,7 @@ from ..repository import book as book_repository
 from ..repository import check_in_out as check_in_out_repository
 from ..repository import genre as genre_repository
 from ..repository import curation as curation_repository
+from ..repository import user as user_repository
 from ..repository import curation_association as curation_association_repository
 from sqlalchemy.orm import Session
 from ..database.base import get_db
@@ -284,6 +287,58 @@ def view_borrowed_books_as_manager(
         check_in_outs = check_in_out_repository.get_all_late_books(db)
     data = {"message": "success", "data": check_in_outs}
     return data
+
+
+@router.post(
+    "/borrower/manager/{id}",
+    response_model=generic_schemas.NoDataResponse,
+    status_code=status.HTTP_200_OK,
+)
+def send_borrowed_books_reminder(
+    id: str,
+    background_tasks: BackgroundTasks,
+    current_user=Depends(authentication_repository.get_current_librarian_user),
+    db: Session = Depends(get_db),
+):
+    check_in_out = check_in_out_repository.get_one(id, db)
+    if check_in_out:
+        borrower_id = check_in_out.borrower_id
+        borrower = user_repository.get_one(
+            borrower_id,
+            db,
+        )
+        if borrower:
+            today = datetime.utcnow()
+            is_late = (
+                check_in_out.due_at >= today
+                and check_in_out.due_at <= today + timedelta(days=DUE_DAYS_REMINDER_AT)
+            )
+            is_due_soon = check_in_out.due_at <= today
+
+            if is_due_soon:
+                send_email_background(
+                    background_tasks,
+                    "Your Library Book is Due Soon!",
+                    f"{borrower.email}",
+                    get_book_due_soon_email(
+                        borrower.first_name,
+                        check_in_out.book.title,
+                        check_in_out.due_at,
+                    ),
+                )
+
+            if is_late:
+                send_email_background(
+                    background_tasks,
+                    "Your Library Book is Late!",
+                    f"{borrower.email}",
+                    get_book_late_email(
+                        borrower.first_name,
+                        check_in_out.book.title,
+                        check_in_out.due_at,
+                    ),
+                )
+    return {"message": "success", "detail": "reminder sent"}
 
 
 @router.put(
