@@ -1,4 +1,3 @@
-import pprint
 from fastapi import Depends, HTTPException, status
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
@@ -7,7 +6,7 @@ from ..database.models import check_in_out as check_in_out_models
 from ..database.base import get_db
 from ..schemas import user as user_schemas
 from ..schemas import check_in_out as check_in_out_schemas
-from sqlalchemy import Column, and_
+from sqlalchemy import and_
 
 
 def get_all(db: Session = Depends(get_db)):

@@ -1,4 +1,3 @@
-import pprint
 from typing import List
 from fastapi import Depends
 from sqlalchemy.orm import Session
