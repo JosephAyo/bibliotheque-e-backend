@@ -283,7 +283,6 @@ def view_borrowed_books_as_manager(
             datetime.utcnow() + timedelta(days=DUE_DAYS_REMINDER_AT),
             db,
         )
-        pprint.pprint(len(check_in_outs))
     elif status == BorrowStatusFilter.LATE:
         check_in_outs = check_in_out_repository.get_all_late_books(db)
     data = {"message": "success", "data": check_in_outs}
@@ -402,7 +401,6 @@ def view_due_soon_and_late_books(
         )
     )
 
-    pprint.pprint({"due_soon_checkouts": due_soon_checkouts})
 
     late_checkouts: List[CheckInOut] = check_in_out_repository.get_late_books_by_user(
         current_user, db
