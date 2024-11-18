@@ -47,6 +47,16 @@ class ShowCurationPrivate(ShowCuration):
     published: bool
 
 
+class GetCurationPublicResponse(IgnoreExtraBaseModel):
+    message: str
+    data: ShowCuration
+
+
+class GetCurationPrivateResponse(IgnoreExtraBaseModel):
+    message: str
+    data: ShowCurationPrivate
+
+
 class GetCurationsPublicResponse(IgnoreExtraBaseModel):
     message: str
     data: List[ShowCuration]

@@ -477,6 +477,31 @@ def edit_genre_details(
 
 
 @router.get(
+    "/curations/{id}",
+    response_model=Union[
+        curation_schemas.GetCurationPublicResponse,
+        curation_schemas.GetCurationPrivateResponse,
+    ],
+    status_code=status.HTTP_200_OK,
+)
+def view_curation(
+    id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_user_or_none),
+):
+    curation: List[Curation] = curation_repository.get_one(id, current_user, db)
+
+    response: dict[str, Any] = {"message": "success", "data": curation}
+
+    data = (
+        curation_schemas.GetCurationPrivateResponse(**response)
+        if authentication_repository.check_if_manager_user(current_user)
+        else curation_schemas.GetCurationPublicResponse(**response)
+    )
+    return data
+
+
+@router.get(
     "/curations",
     response_model=Union[
         curation_schemas.GetCurationsPublicResponse,
@@ -484,7 +509,7 @@ def edit_genre_details(
     ],
     status_code=status.HTTP_200_OK,
 )
-def view_curation(
+def view_curations(
     db: Session = Depends(get_db),
     current_user=Depends(authentication_repository.get_current_user_or_none),
 ):
@@ -497,7 +522,7 @@ def view_curation(
     data = (
         curation_schemas.GetCurationsPrivateResponse(**response)
         if authentication_repository.check_if_manager_user(current_user)
-        else curation_schemas.GetCurationsPublicResponse(**response.__dict__)
+        else curation_schemas.GetCurationsPublicResponse(**response)
     )
     return data
 
