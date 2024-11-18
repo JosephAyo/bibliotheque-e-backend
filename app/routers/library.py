@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 import pprint
-from typing import List, Union
+from typing import Any, List, Union
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 
 from app.database.enums import BorrowStatusFilter
 from app.database.models.check_in_out import CheckInOut
+from app.database.models.curation import Curation
 from app.helpers.email_templates import get_book_due_soon_email, get_book_late_email
 from app.helpers.send_email import send_email_background
 from app.utils.constants import DUE_DAYS_REMINDER_AT, MAX_BOOK_GENRES_ASSOCIATIONS
@@ -477,15 +478,28 @@ def edit_genre_details(
 
 @router.get(
     "/curations",
-    response_model=curation_schemas.GetCurationsResponse,
+    response_model=Union[
+        curation_schemas.GetCurationsPublicResponse,
+        curation_schemas.GetCurationsPrivateResponse,
+    ],
     status_code=status.HTTP_200_OK,
 )
 def view_curation(
     db: Session = Depends(get_db),
+    current_user=Depends(authentication_repository.get_current_user_or_none),
 ):
-    curation = curation_repository.get_all(db)
-    response = {"message": "success", "data": curation}
-    return response
+    curations: List[Curation] = curation_repository.get_all(current_user, db)
+
+    curation_dicts = [curation.__dict__ for curation in curations]
+
+    response: dict[str, Any] = {"message": "success", "data": curation_dicts}
+
+    data = (
+        curation_schemas.GetCurationsPrivateResponse(**response)
+        if authentication_repository.check_if_manager_user(current_user)
+        else curation_schemas.GetCurationsPublicResponse(**response.__dict__)
+    )
+    return data
 
 
 @router.post(
@@ -515,7 +529,7 @@ def edit_curation_details(
     current_user=Depends(authentication_repository.get_current_manager_user),
 ):
     id = req_body.id
-    curation = curation_repository.get_one(id, db)
+    curation = curation_repository.get_one(id, current_user, db)
     delattr(req_body, "id")
 
     curation_repository.update(id, dict(req_body), db)

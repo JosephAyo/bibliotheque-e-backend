@@ -21,7 +21,4 @@ class BookCurationAssociation(Base):
         "Curation",
         back_populates="curation_associations",
     )
-    book = relationship(
-        "Book",
-        lazy=False
-    )
+    book = relationship("Book", lazy=False)

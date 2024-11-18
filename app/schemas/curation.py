@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 from .book import ShowBookPublic
 
@@ -9,7 +9,7 @@ class NoExtraBaseModel(BaseModel):
 
 
 class IgnoreExtraBaseModel(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="ignore", from_attributes=True)
 
 
 class CreateCuration(NoExtraBaseModel):
@@ -38,12 +38,20 @@ class ShowCuration(IgnoreExtraBaseModel):
     id: str
     title: str
     description: str
-    published: bool
     curation_associations: List[BookCurationAssociation]
     created_at: datetime
     updated_at: datetime
 
 
-class GetCurationsResponse(IgnoreExtraBaseModel):
+class ShowCurationPrivate(ShowCuration):
+    published: bool
+
+
+class GetCurationsPublicResponse(IgnoreExtraBaseModel):
     message: str
     data: List[ShowCuration]
+
+
+class GetCurationsPrivateResponse(IgnoreExtraBaseModel):
+    message: str
+    data: List[ShowCurationPrivate]
