@@ -57,6 +57,7 @@ def create(req_body: curation_schemas.CreateCuration, db: Session = Depends(get_
     new_curation = curation_model.Curation(
         title=req_body.title,
         description=req_body.description,
+        published=req_body.published,
     )
     db.add(new_curation)
     db.commit()
