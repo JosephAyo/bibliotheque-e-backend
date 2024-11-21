@@ -308,11 +308,11 @@ def send_borrowed_books_reminder(
         )
         if borrower:
             today = datetime.utcnow()
-            is_late = (
+            is_due_soon = (
                 check_in_out.due_at >= today
                 and check_in_out.due_at <= today + timedelta(days=DUE_DAYS_REMINDER_AT)
             )
-            is_due_soon = check_in_out.due_at <= today
+            is_late = check_in_out.due_at <= today
 
             if is_due_soon:
                 send_email_background(
@@ -399,7 +399,6 @@ def view_due_soon_and_late_books(
             current_user, datetime.utcnow() + timedelta(days=DUE_DAYS_REMINDER_AT), db
         )
     )
-
 
     late_checkouts: List[CheckInOut] = check_in_out_repository.get_late_books_by_user(
         current_user, db
