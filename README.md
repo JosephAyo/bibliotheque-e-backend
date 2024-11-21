@@ -4,7 +4,7 @@ This is a RESTful service
 
 ## Pre-requisites
 
-* Python3
+* Python3.12
 
 ## Steps
 
@@ -23,7 +23,7 @@ They are:
 ### Create virtual environment
 
 ```bash
-python3 -m venv <venv_name>
+python3.12 -m venv <venv_name>
 ```
 
 #### *NB: you may have to use python3 in place of python, if you are using python version 3*
